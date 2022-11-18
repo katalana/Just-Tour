@@ -1,14 +1,5 @@
 require: requirements.sc
 
-# init:     //путь к текущему стейту будет везде сохраняться в $session как предыдущий стейт
-#     bind(
-#         "postProcess", 
-#         function($context) {
-#         $context.session.lastState = $context.currentState;
-#         }
-#     );
-
-
 theme: /  
 
 # Старт диалога с глобальных тегов активации q!: слово *Start или переменная $hi
