@@ -158,7 +158,7 @@ theme: /Menu
                 q: @duckling.date
                 script: $session.date = $parseTree.value;
                 a: записали дату: {{toPrettyString($session.date)}}
-                go!: /Weather/Date
+                go!: /Weather/WeatherDate
             # интент отказ - предлаагаем варианты и идем в меню
             state: ChooseDeny
                 q: * (ничего/никакую) *
@@ -177,82 +177,65 @@ theme: /Menu
 
 theme: /Weather 
     
-    state: WeatherQuest
+    state: WeatherStart
     #вопрос из любого места о погоде
         q!: * (~погода) *
         q!: * [хочу] узнать погоду *
         q!: * {погоду подскажи} *
         q!: * {(погодочку/погодку/погоду) [бы]}
-        # проверяем есть ли город/страна
-        if: $session.arrivalPointForCity
-            a: Вы хотели бы узнать погоду в {{ $session.arrivalPointForCity }}?
-        elseif: $session.arrivalPointForCountry
-            a: Вы хотели бы узнать погоду в {{ $session.arrivalPointForCountry }}?
-        else:
-            a: В Каком Городе/Стране Вас интересует погода?
-# если да, идем запрашивать погоду
-        state: WeatherYes
-            q: * $comYes *
-            q: верно
-            q: * [это] (он/оно/то что нужно) *
-            if: $session.arrivalPointForCity
-                go!: /Weather/WeatherOfCity
-            elseif: $session.arrivalPointForCountry
-                go!: /Weather/WeatherOfCountry
-# если нет, очищаем переменную, возвращаемся к запросу
-        state: WeatherNO
-            q: * $comNo *
-            q: * (не верно/неверно) *
-            q: * [это] не то [что я хотел] *
-            script:
-                delete $session.arrivalPointForCity;
-                delete $session.arrivalPointForCountry;
-                delete $session.arrivalCoordinates;
-            go!: /Weather/WeatherQust
-#если введен город - идем запрашивать погоду по городу
-# ГДЕ СОХРАНЕНИЕ ПЕРЕМЕННОЙ?!
-        state: WeatherCity
-            q: * $City *
-            script: $session.typeOfPlace = "городе"
-            go!: /Weather/WeatherInTheCity
-#если введена страна - идем запрашивать погоду по стране
-# ГДЕ СОХРАНЕНИЕ ПЕРЕМЕННОЙ?!
-        state: WeatherCountry
+        # если уже есть город/страна
+        if: $session.place
+            # если это город - идем на запрос даты
+            if: $session.place.type == "городе"
+                go!: /Weather/InputDate
+            # иначе спрашиваем, будет ли город, идем на обработку этого вопроса
+            else:
+                a: Смотрю погоду в стране {{$session.place.name}}. Можете назвать город?
+                go!: /Weather/AskCity
+        # если нет ни города, ни страны - запрашиваем
+        else:    
+            a: Назовите город или страну
+        # если назвали страну - записали страну и идем на начало чтоб спросить про город
+        state: WeatherContry
             q: * $Country *
-            script: $session.typeOfPlace = "стране"
-            go!: /Weather/WeatherInTheCountry
-    
-    state: WeatherInTheCity
-        #вопрос из любого места о погоде в конкретном городе
-        q!: * [$Question] * $Weather * $City *
-        q!: * [$Question] * $City * $Weather *
-        q!: * а в $City *
-#распарсили ответ на имя города и координаты
-        script:
-            $session.arrivalPointForCity = $parseTree._City.name;
-            $session.arrivalCoordinates = {
-                lat: $parseTree._City.lat,
-                lon: $parseTree._City.lon
-            };
-#идем спрашивать дату
-        go!: /Weather/Date
+            script:
+                $session.place = {name: $parseTree._Country.name, type: "стране"}
+                $session.coordinates = {lat: $parseTree._Country.lat, lon: $parseTree._Country.lon}
+            go!: /Weather/WeatherStart
+        # если назвали город - записали город и идем на запрос даты    
+        state: WeatherSity    
+            q: * $City *
+            script:
+                $session.place = {name: $parseTree._City.name, type: "городе"}
+                $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
+            go!: /Weather/InputDate
+        #если название непонятное - переспрашиваем и идем на начало чтоб спросить страну или город
+        state: WeatherNoMatch
+            event: noMatch
+            a: Простите, я не знаю такого названия
+            go!: /Weather/WeatherStart
 
+    #запрос даты
+    state: InputDate
+        #если дата уже была раньше записана - идем на проверку даты
+        if: $session.date
+            go!: /Weather/CheckDate
+        else: 
+            a: На какую дату смотрим прогноз погоды?
         
-#запрос даты
-    state: DateOne
-        a: На какую дату смотрим прогноз?
+        state: jffjhdfkfdkjfdjk
+            q: @duckling.date            
+#ТУТ ПИШЕМ ВЛОЖЕННЫЕ ОТВЕТЫ И ИДЕМ ДАЛЬШЕ
+            
+    # проверка даты
+    state: CheckDate
+        
+#СЮДА ПОДТЯГИВАЕМ АЛГОРИТМ ПРОВЕРКИ ДАТЫ И ВЫХОД НА АПИ
 
-        state: InputDate
-#если введена дата
-#            q: @duckling.date
+
 #определяем горизонт прогноза
             script:
                 $session.Date = $parseTree.value;
-                
-#ТУТ БУДЕТ ДРУГОЕ НАЧАЛО, КАК В СХЕМЕ, БЕЗ ВОПРОСА В НАЧАЛЕ, ТОЛЬКО ПРОВЕРКА НАЛИЧИЯ ДАТЫ                
-                
-                
-#ДОБАВИТЬ ОПРЕДЕЛЕНИЕ ЧАСОВОГО ПОЯСА!
                 var current = $jsapi.dateForZone("Europe/Moscow","yyyy-MM-dd");
                 current = Date.parse (current);
                 $session.interval = ($session.Date.timestamp-current)/60000/60/24;
