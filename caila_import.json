@@ -11,7 +11,29 @@
     "timezone" : "UTC",
     "shared" : false
   },
-  "intents" : [ ],
+  "intents" : [ {
+    "path" : "/Прощание",
+    "enabled" : true,
+    "shared" : false,
+    "phrases" : [ {
+      "text" : "Пока"
+    }, {
+      "text" : "До свидания"
+    }, {
+      "text" : "Пока"
+    }, {
+      "text" : "Всего доброго"
+    }, {
+      "text" : "Всего хорошего"
+    }, {
+      "text" : "Покеда"
+    } ],
+    "classificationRules" : {
+      "refs" : [ ]
+    },
+    "patterns" : [ ],
+    "priority" : 0
+  } ],
   "entities" : [ ],
   "enabledSystemEntities" : [ "duckling.number", "duckling.time", "duckling.duration", "duckling.phone-number", "duckling.email", "duckling.url" ],
   "spellerDictionary" : [ ],
