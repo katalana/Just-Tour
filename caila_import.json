@@ -2,7 +2,7 @@
   "project" : {
     "id" : "just_tour_git-1000048259-Vtf",
     "name" : "just_tour_git-1000048259-Vtf",
-    "folder" : "/"
+    "folder" : "/jaicp"
   },
   "settings" : {
     "language" : "ru",
@@ -35,11 +35,11 @@
     "priority" : 0
   } ],
   "entities" : [ ],
-  "enabledSystemEntities" : [ "duckling.number", "duckling.time", "duckling.duration", "duckling.phone-number", "duckling.email", "duckling.url" ],
+  "enabledSystemEntities" : [ "mystem.geo", "pymorphy.geox", "duckling.number", "duckling.time", "duckling.date", "duckling.phone-number" ],
   "spellerDictionary" : [ ],
   "systemEntities" : [ {
     "name" : "mystem.geo",
-    "enabled" : false
+    "enabled" : true
   }, {
     "name" : "mystem.persn",
     "enabled" : false
@@ -78,7 +78,7 @@
     "enabled" : false
   }, {
     "name" : "pymorphy.geox",
-    "enabled" : false
+    "enabled" : true
   }, {
     "name" : "pymorphy.orgn",
     "enabled" : false
@@ -105,7 +105,7 @@
   }, {
     "name" : "duckling.date",
     "version" : "v2",
-    "enabled" : false
+    "enabled" : true
   }, {
     "name" : "duckling.time-of-day",
     "version" : "v2",
@@ -113,7 +113,7 @@
   }, {
     "name" : "duckling.duration",
     "version" : "v2",
-    "enabled" : true
+    "enabled" : false
   }, {
     "name" : "duckling.phone-number",
     "version" : "v2",
@@ -121,11 +121,11 @@
   }, {
     "name" : "duckling.email",
     "version" : "v2",
-    "enabled" : true
+    "enabled" : false
   }, {
     "name" : "duckling.url",
     "version" : "v2",
-    "enabled" : true
+    "enabled" : false
   }, {
     "name" : "duckling.interval",
     "version" : "v2",

@@ -1,7 +1,4 @@
-# запускаемые модули/библиотеки
-require: slotfilling/slotFilling.sc
-    module = sys.zb-common
-  
+# библиотека локальных функций Moment.js - для работы с текущей датой
 require: dateTime/moment.min.js
     module = sys.zb-common 
 

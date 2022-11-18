@@ -56,7 +56,7 @@ theme: /Name
             script:
                 $client.name = $parseTree._Name.name;
             a: {{ $client.name }}, приятно познакомиться!    
-            go!: /Menu/Start
+            go!: /Menu/Begin
 # не хочу знакомиться - соглашаемся и идем на старт диалога
         state: NoName
             q: (* никак */* не надо */ * не хочу *)
@@ -79,12 +79,12 @@ theme: /Name
                     $client.name = $session.probablyName;
                     delete $session.probablyName;
                 a: {{ $client.name }}, приятно познакомиться!
-                go!: /Service/SuggestHelp
+                go!: /Menu/Begin
 # если не имя - соглашаемся не знакомиться и идем на старт диалога
             state: No
                 q: (нет/* не верно *)
                 a: Как вам будет удобно. Обойдемся без знакомства.
-                go!: /Service/SuggestHelp
+                go!: /Menu/Begin
                 
 # Если уже есть имя - проверяем актуально ли оно
     state: ConfirmName
@@ -103,7 +103,7 @@ theme: /Name
                 $client.name = $session.probablyName;
                 delete $session.probablyName;
             a: {{ $client.name }}, приятно познакомиться!
-            go!: /Service/SuggestHelp
+            go!: /Menu/Begin
 # если нет - снова идем снова спрашивать имя
         state: No
             q: (нет/не [верно])
@@ -163,6 +163,7 @@ theme: /Menu
             state: Date
                 q: @duckling.date
                 script: $session.Date = $parseTree.value;
+                a: записали дату: {{$session.Date}}
                 go!: /Weather/Date
             # интент отказ        
             state: Deny
