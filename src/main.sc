@@ -144,12 +144,12 @@ theme: /Menu
             #если назван город - запоминаем город и его координаты
             if: $parseTree.City
                 script:
-                    $session.place = {name: $parseTree._City.name, type: "городе"}
+                    $session.place = {name: $parseTree._City.name, namesc: "", type: "городе"}
                     $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
             #иначе - запоминаем страну и её координаты
             else: 
                 script:
-                    $session.place = {name: $parseTree._Country.name, type: "стране"}
+                    $session.place = {name: $parseTree._Country.name, namesc: $parseTree._Country.namesc, type: "стране"}
                     $session.coordinates = {lat: $parseTree._Country.lat, lon: $parseTree._Country.lon}
             #запрашиваем дату
             a: {{$session.place.name}}? Интересная идея! Сейчас узнаю какая там погода. Какую дату посмотреть?
@@ -195,20 +195,20 @@ theme: /Weather
         # если нет ни города, ни страны - запрашиваем
         else:    
             a: Назовите город или страну
-        # если назвали страну - записали страну и идем на начало чтоб спросить про город
-        state: WeatherContry
-            q: * $Country *
-            script:
-                $session.place = {name: $parseTree._Country.name, type: "стране"}
-                $session.coordinates = {lat: $parseTree._Country.lat, lon: $parseTree._Country.lon}
-            go!: /Weather/WeatherStart
         # если назвали город - записали город и идем на запрос даты    
         state: WeatherSity    
             q: * $City *
             script:
-                $session.place = {name: $parseTree._City.name, type: "городе"}
+                $session.place = {name: $parseTree._City.name, namesc: "", type: "городе"}
                 $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
             go!: /Weather/InputDate
+        # если назвали страну - записали страну и идем на начало чтоб спросить про город
+        state: WeatherContry
+            q: * $Country *
+            script:
+                $session.place = {name: $parseTree._Country.name, namesc: $parseTree._Country.namesc, type: "стране"}
+                $session.coordinates = {lat: $parseTree._Country.lat, lon: $parseTree._Country.lon}
+            go!: /Weather/WeatherStart
         #если название непонятное - переспрашиваем и идем на начало чтоб спросить страну или город
         state: WeatherNoMatch
             event: noMatch
