@@ -1,2 +1,2 @@
 # Just-Tour
-Сертификация. Вторая задача
+Sertification. The second task
