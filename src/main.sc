@@ -124,48 +124,51 @@ theme: /Menu
             "Оформить заявку на тур"
             "Рассказать о погоде"
         # интент Что еще умеешь - идем в начало выбора       
-        state: WhatElse
+        state: ChooseWhatElse
             q: * [что] еще [умеешь]*
             q: * другое *
             q: * другое *
             a: Пока больше ничего. Только рассказывать о погоде и оформлять заявку на тур.
             go!: /Menu/Choose
         # интент Отказ - идем на выход
-        state: Deny
+        state: ChooseExit
             q: * ничего *
             q: * не хочу *
             q: * не надо *
             q: * отказ *
             go!: /Exit
         # интент город/страна 
-        state: Location
+        state: ChooseLocation
             q: * $City *
             q: * $Country *
-            #парсим город или страну и тип места
+            #если назван город - запоминаем город и его координаты
             if: $parseTree.City
                 script:
-                    $session.Place = {name: $parseTree._City.name, type: "городе"}
-                    $session.Coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
+                    $session.place = {name: $parseTree._City.name, type: "городе"}
+                    $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
+            #иначе - запоминаем страну и её координаты
             else: 
                 script:
-                    $session.Place = {name: $parseTree._Country.name, type: "стране"}
-                    $session.Coordinates = {lat: $parseTree._Country.lat, lon: $parseTree._Country.lon}
-            a: {{$session.Place.name}}? Интересная идея! Сейчас узнаю какая там погода. Какую дату посмотреть?
-            # интент дата        
-            state: Date
+                    $session.place = {name: $parseTree._Country.name, type: "стране"}
+                    $session.coordinates = {lat: $parseTree._Country.lat, lon: $parseTree._Country.lon}
+            #запрашиваем дату
+            a: {{$session.place.name}}? Интересная идея! Сейчас узнаю какая там погода. Какую дату посмотреть?
+            # дата названа - записываем дату и идем в прогноз
+            state: ChooseDate
                 q: @duckling.date
-                script: $session.Date = $parseTree.value;
-                a: записали дату: {{$session.Date}}
+                script: $session.date = $parseTree.value;
+                a: записали дату: {{toPrettyString($session.date)}}
                 go!: /Weather/Date
-            # интент отказ        
-            state: Deny
+            # интент отказ - предлаагаем варианты и идем в меню
+            state: ChooseDeny
                 q: * (ничего/никакую) *
                 q: * не хочу *
                 q: * не надо *
                 q: * отказ*
                 a: Хотите, оформим заявку на подбор тура? Или посмотрим погоду в другом месте.
                 go!: /Menu/Choose
-            state: NoMatch
+            # ответ непонятен - ругаемся и идем в меню
+            state: ChooseNoMatch
                 event: noMatch
                 a: Я вас не поняла.
                 go!: /Menu/Choose
@@ -174,13 +177,13 @@ theme: /Menu
 
 theme: /Weather 
     
-    state: WeatherQust 
-        #вопрос из любого места о погоде без конкретики. Если до этого погоду уже спрашивали, то уточнит по месту. 
+    state: WeatherQuest
+    #вопрос из любого места о погоде
         q!: * (~погода) *
         q!: * [хочу] узнать погоду *
         q!: * {погоду подскажи} *
         q!: * {(погодочку/погодку/погоду) [бы]}
-# проверяем есть ли город/страна, уточняем, там ли нужна погода, если нет - спрашиваем где нужна погода
+        # проверяем есть ли город/страна
         if: $session.arrivalPointForCity
             a: Вы хотели бы узнать погоду в {{ $session.arrivalPointForCity }}?
         elseif: $session.arrivalPointForCountry
@@ -236,12 +239,12 @@ theme: /Weather
 
         
 #запрос даты
-    state: Date
+    state: DateOne
         a: На какую дату смотрим прогноз?
 
         state: InputDate
 #если введена дата
-            q: @duckling.date
+#            q: @duckling.date
 #определяем горизонт прогноза
             script:
                 $session.Date = $parseTree.value;
