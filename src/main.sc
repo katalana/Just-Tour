@@ -96,22 +96,20 @@ theme: /Menu
             "Оформить заявку на тур"
             "Рассказать о погоде"
         # интент Что еще умеешь - идем в начало выбора       
-        state: ChooseWhatElse
+        state: WhatElse
             q: * [что] еще [умеешь]*
             q: * другое *
-            q: * другое *
-            a: Пока больше ничего. Только рассказывать о погоде и оформлять заявку на тур.
+            a: Я пока больше ничего не умею. Только рассказывать о погоде и оформлять заявку на тур.
             go!: /Menu/Choose
         # интент Отказ - идем на выход
-        state: ChooseExit
-            q: * ничего *
-            q: * не хочу *
-            q: * не надо *
-            q: * отказ *
+        state: Deny
+            q: * ничего/отказ *
+            q: * (не хочу)/(не надо) *
+            q: * [это] не то *
             a: Как скажете.
             go!: /Exit
         # интент город/страна 
-        state: ChooseLocation
+        state: Location
             q: * $City *
             q: * $Country *
             #если назван город - запоминаем город и его координаты
@@ -127,21 +125,20 @@ theme: /Menu
             #запрашиваем дату
             a: {{$session.place.name}}? Интересная идея! Сейчас узнаю какая там погода. Какую дату посмотреть?
             # дата названа - записываем дату и идем в прогноз
-            state: ChooseDate
+            state: Date
                 q: @duckling.date
                 script: $session.date = $parseTree.value;
                 a: записали дату: {{toPrettyString($session.date)}}
-                go!: /Weather/WeatherDate
+                go!: /Weather/Step2
             # интент отказ - предлаагаем варианты и идем в меню
-            state: ChooseDeny
+            state: Deny
                 q: * (ничего/никакую) *
-                q: * не хочу *
-                q: * не надо *
-                q: * отказ*
+                q: * (не хочу)/(не надо) *
+                q: * нет/не надо *
                 a: Хотите, оформим заявку на подбор тура? Или посмотрим погоду в другом месте.
                 go!: /Menu/Choose
             # ответ непонятен - ругаемся и идем в меню
-            state: ChooseNoMatch
+            state: NoMatch
                 event: noMatch
                 a: Я вас не поняла.
                 go!: /Menu/Choose
@@ -150,143 +147,135 @@ theme: /Menu
 
 theme: /Weather 
     
-    state: WeatherStart
+    state: Begin
     #вопрос из любого места о погоде
         q!: * (~погода) *
         q!: * [хочу] узнать погоду *
-        q!: * {погоду подскажи} *
-        q!: * {(погодочку/погодку/погоду) [бы]}
+        q!: * (погодочку/погодку/погоду) *
         # если уже есть город/страна
         if: $session.place
             # если это город - идем на запрос даты
             if: $session.place.type == "городе"
-                go!: /Weather/InputDate
+                go!: /Weather/Step2
             # иначе спрашиваем, будет ли город, идем на обработку этого вопроса
             else:
                 a: Смотрю погоду в стране {{$session.place.name}}. Можете назвать город?
-                go!: /Weather/WeatherAskCity
-        # если нет ни города, ни страны - запрашиваем
+                go!: /Weather/AskCity
+        #если нет ни города, ни страны - запрашиваем
         else:    
             a: Назовите город или страну
-        # если назвали город - записали город и идем на запрос даты    
-        state: WeatherCity    
+        #если назвали город - записали город и идем на запрос даты    
+        state: City    
             q: * $City *
             script:
                 $session.place = {name: $parseTree._City.name, namesc: "", type: "городе"}
                 $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
-            go!: /Weather/WeatherStep2
-        # если назвали страну - записали страну и идем на начало чтоб спросить про город
-        state: WeatherContry
+            go!: /Weather/Step2
+        #если назвали страну - записали страну и идем на начало чтоб спросить про город
+        state: Contry
             q: * $Country *
             script:
                 $session.place = {name: $parseTree._Country.name, namesc: $parseTree._Country.namesc, type: "стране"}
                 $session.coordinates = {lat: $parseTree._Country.lat, lon: $parseTree._Country.lon}
-            go!: /Weather/WeatherStart
+            go!: /Weather/Begin
         #если название непонятное - переспрашиваем и идем на начало чтоб спросить страну или город
         state: WeatherNoMatch
             event: noMatch
             a: Простите, я не знаю такого названия
-            go!: /Weather/WeatherStart
+            go!: /Weather/Begin
 
     #обработка запроса города если есть только страна
-    state: WeatherAskCity
+    state: AskCity
         # назван город - сохранили его и идем смотреть прогноз
-        state: CityWeatherAskCity 
+        state: City
             q: * $City *
             script:
                 $session.place = {name: $parseTree._City.name, namesc: "", type: "городе"}
                 $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
-            go!: /Weather/WeatherStep2        
+            go!: /Weather/Step2        
         #ответ тупо "да" - просим назвать город, идем на начало обработки запроса
-        state: YesWeatherAskCity
+        state: Yes
             q: да *
             q: * [да] (могу/конечно) *
             a: Назовите же его скорее!
-            go!: /Weather/WeatherAskCity
+            go!: /Weather/AskCity
         #ответ нет - идем смотреть прогноз по стране
-        state: NoWeatherAskCity
-            q: * нет *
+        state: No
+            q: * нет/не знаю/не помню *
             q: * [нет] (не могу) *
             a: Окей, смотрим прогноз в среднем по стране
-            go!: /Weather/WeatherStep2
+            go!: /Weather/Step2
         #любой другой ответ - тоже идем смотреть прогноз по стране    
-        state: NoMatchWeatherAskCity
+        state: NoMatch
             event: noMatch
             a: Простите, я не знаю такого города. Посмотрю прогноз по стране
-            go!: /Weather/WeatherStep2
+            go!: /Weather/Step2
             
-                
     #запрос даты
-    state: WeatherStep2
+    state: Step2
         #если дата уже была раньше сохранена - идем на Шаг3
         if: $session.date
-            go!: /Weather/WeatherStep3
+            go!: /Weather/Step3
         #иначе - спрашиваем дату
         else: 
             a: На какую дату смотрим прогноз погоды?
         #названа дата - сохраняем ее и идем на Шаг3
-        state: WeatherStep2Date
+        state: Date
             q: @duckling.date            
             script: $session.Date = $parseTree.value
-            go!: /Weather/WeatherStep3
-        
-        state: WeatherStep2Deny
+            go!: /Weather/Step3
+        #отказ - идем на выход
+        state: Deny
             q: * (ничего/никакую) *
-            q: * не хочу *
-            q: * не надо *
-            q: * отказ*
+            q: * (не хочу)/(не надо) *
+            q: * нет/не надо *
+            q: * нет/отказ* *
             a: Как скажете.
             go!: /Exit
-    # проверка даты
-    state: WeatherStep3
-        
-#СЮДА ПОДТЯГИВАЕМ АЛГОРИТМ ПРОВЕРКИ ДАТЫ И ВЫХОД НА АПИ
-
-
-#определяем горизонт прогноза
-            script:
-                $session.Date = $parseTree.value;
-                var current = $jsapi.dateForZone("Europe/Moscow","yyyy-MM-dd");
-                current = Date.parse (current);
-                $session.interval = ($session.Date.timestamp-current)/60000/60/24;
-#проверям, попадает ли горизонт в рамки прогноза и выбираем что показать - прогноз или историю
-            if: ($session.interval == 0 || ($session.interval > 0 && $session.interval < 17))
-                go!: /Weather/WeatherRequest
-            else: 
-                if: ( $session.interval == 17 ||  $session.interval > 17 )
-                    a: Не могу посмотреть прогноз больше, чем на 16 дней. Узнать погоду год назад в эту дату?
-                else:    
-                    a: Эта дата в прошлом. Узнать какая погода была в эту дату в прошлом году?
-#ловим ответ да/нет/noMatch
-            state: Yes
-                q: Да
-                a: была введена дата {{toPrettyString($session.Date)}}
-# идем запрашивать исторические данные
-                go!: /Weather/WeatherHistoryRequest
-            state: No
-                q: Нет
-                a: Хорошо
-                go!: /Weather/Date
-            state: NoMatch
-                q: *
-                a: Извините, я вас не поняла
-                go!: /Weather/Date
-        
-        state: InputNoData
-#если дата не введена        
-            q: *
-            a: Я не могу посмотреть прогноз без даты
-            go!: /Weather/Date
-        
-# функция запроса погоды
-    state: WeatherRequest
+        #любой другой ответ - подсказываем что надо ответить и идем на начало шага
+        state: NoMatch
+            event: noMatch
+            a: Назовите число и месяц.
+            go!: /Weather/Step2    
+    
+    #проверка даты
+    state: Step3
+        #вызвали текущую дату, сравнили ее с сохраненной, определили интервал прогноза
         script:
-# запрашиваем погоду по API и сохраняем температуру в сессионную переменную
+            var current = $jsapi.dateForZone("Europe/Moscow","yyyy-MM-dd");
+            current = Date.parse (current);
+            $session.interval = ($session.Date.timestamp-current)/60000/60/24;
+            #если интервал в рамках границ прогноза - идем его запрашивать
+        if: ( $session.interval == 0 || ($session.interval > 0 && $session.interval < 17) )
+            go!: /Weather/ForecastStep4
+        # если нет - уточняем у пользователя что он хочет
+        else: 
+            if: ( $session.interval == 17 ||  $session.interval > 17 )
+                a: Не могу посмотреть прогноз больше, чем на 16 дней. Узнать погоду год назад в эту дату?
+            else:    
+                a: Эта дата в прошлом. Узнать какая погода была в эту дату в прошлом году?
+        #если да - идем запрашивать исторические данные
+        state: Yes
+            q: Да
+            go!: /Weather/HistoryStep4
+        #если нет - очистили дату и идем снова спрашивать дату
+        state: No
+            q: * нет *
+            q: * другая/другую [~дата] *
+            q: * (не хочу)/(не надо) *
+            script: delete $session.Date
+            a: Хорошо.
+            go!: /Weather/Step2
+        
+    # функция запроса погоды
+    state: ForecastStep4
+        script:
+            # запрашиваем погоду по API и сохраняем температуру
             $temp.Weather = getWeather($session.arrivalCoordinates.lat, $session.arrivalCoordinates.lon, $session.interval);
             $session.TempForQuest = $temp.Weather.temp;
-# если ответ пришел - выдаем его
+        # если ответ пришел - выдаем его
         if: $temp.Weather
-# формируем ответ про день/дату, на который получен прогноз
+            # формируем ответ про день/дату, на который получен прогноз
             script: 
                 if ($session.interval == 0) {
                     $session.answerDate = "сегодня";
@@ -299,79 +288,40 @@ theme: /Weather
                     $session.answerDate += $session.Date.day + "." + $session.Date.month + "." + $session.Date.year;
                 }
             a: Погода в {{ $session.typeOfPlace }} {{ $session.arrivalPointForCity }} на {{$session.answerDate}}: {{ $temp.Weather.description }}, {{ $temp.Weather.temp }}°C. Ветер {{ $temp.Weather.wind }} м/с, порывы до {{ $temp.Weather.gust }} м/с.
-# если ответ не пришел - извиняемся и идем в главное меню
+        # если ответ не пришел - извиняемся и идем в главное меню
         else: 
             a: Запрос погоды не получен по техническим причинам. Пожалуйста, попробуйте позже
-            go!:  /Service/SuggestHelp
+            go!: /Menu/Begin
 #идем спрашивать клиента про климат
         go!: /Weather/AreYouSure
     
-# функция запроса погоды в прошлом    
-    state: WeatherHistoryRequest
+    # функция запроса исторических данных о погоде
+    state: HistoryStep4
         script:
-# формируем для запроса входную и выходную дату в прошлом году
+            # формируем для запроса входную и выходную дату в прошлом году
             $session.historyDay1 = "";
             $session.historyDay2 = "";
             $session.historyDay1 += minus($jsapi.dateForZone("Europe/Moscow","yyyy")) + "-" + $session.Date.month + "-" + $session.Date.day;
             $session.historyDay2 += minus($jsapi.dateForZone("Europe/Moscow","yyyy")) + "-" + $session.Date.month + "-" + plus($session.Date.day);
-# запрашиваем погоду  по API и сохраняем температуру в сессионную переменную
+            # запрашиваем погоду  по API и сохраняем температуру
             $temp.Weather = getHistoricalWeather($session.arrivalCoordinates.lat, $session.arrivalCoordinates.lon, $session.historyDay1, $session.historyDay2);
             $session.TempForQuest = $temp.Weather.temp;
-# если ответ пришел - выдаем его
+        # если ответ пришел - выдаем его
         if: $temp.Weather
-# формируем ответ про день/дату, на который получен прогноз            
+            # формируем ответ про день/дату, на который получен прогноз            
             script: 
                 $session.answerDate = "";
                 $session.answerDate += $session.Date.day + "." + $session.Date.month; 
             a: Погода в {{ $session.typeOfPlace }} {{ $session.arrivalPointForCity }} в прошлом году на {{$session.answerDate}} была: {{ $temp.Weather.temp }}°C. Ветер {{ $temp.Weather.wind }} м/с, порывы до {{ $temp.Weather.gust }} м/с.
-# если ответ не пришел - извиняемся и идем в главное меню
+        # если ответ не пришел - извиняемся и идем в главное меню
         else: 
             a: Запрос погоды не получен по техническим причинам. Пожалуйста, попробуйте позже
-            go!:  /Service/SuggestHelp
+            go!: /Menu/Begin
 #идем спрашивать клиента про климат
         go!: /Weather/AreYouSure    
 
-    
-    # state: WeatherInTheCountry 
-    #     #вопрос из любого места о погоде в конкретной стране
-    #     q!: * [$Question] * $Weather * $Country *
-    #     q!: * [$Question] * $Country * $Weather *
-    #     q!: * а в $Country *
-    #     script:
-    #         $session.arrivalPointForCountry = $parseTree._Country.namesc;
-    #         $session.arrivalCoordinates = {
-    #             lat: $parseTree._Country.lat,
-    #             lon: $parseTree._Country.lon
-    #         };
-    #         $temp.Weather = getWeather($session.arrivalCoordinates.lat, $session.arrivalCoordinates.lon);
-    #         $session.TempForQuest = $temp.Weather.temp;
-    #     if: $temp.Weather
-    #         a: В {{ $session.arrivalPointForCountry }} сейчас {{ $temp.Weather.description }} {{ $temp.Weather.temp }}°C. Ощущается как {{ $temp.Weather.feelslike }}°C.
-    #         go!: /Weather/AreYouSure
-    
-
-    # state: WeatherOfCity 
-    #     #для варианта когда уже был известен город и сессионая переменная уже обозначена
-    #     script:
-    #         $temp.Weather = getWeather($session.arrivalCoordinates.lat, $session.arrivalCoordinates.lon);
-    #         $session.TempForQuest = $temp.Weather.temp;
-    #     if: $temp.Weather
-    #         a: В городе {{ $session.arrivalPointForCity }} сейчас {{ $temp.Weather.description }} {{ $temp.Weather.temp }}°C. Ощущается как {{ $temp.Weather.feelslike }}°C.
-    #         go!: /Weather/AreYouSure
-        
-            
-    # state: WeatherOfCountry 
-    #     #для варианта когда уже была известна страна и сессионая переменная уже обозначена
-    #     script:
-    #         $temp.Weather = getWeather($session.arrivalCoordinates.lat, $session.arrivalCoordinates.lon);
-    #         $session.TempForQuest = $temp.Weather.temp;
-    #     if: $temp.Weather
-    #         a: В {{ $session.arrivalPointForCountry }} сейчас {{ $temp.Weather.description }} {{ $temp.Weather.temp }}°C. Ощущается как {{ $temp.Weather.feelslike }}°C.
-    #         go!: /Weather/AreYouSure
-        
-        
     state: AreYouSure
-        #уточнение точно клиент хочет туда поехать?
+        #уточняем: точно ли клиент хочет туда поехать?
         script:
             if ($session.TempForQuest < 25 && $session.TempForQuest > 0) {
                 $reactions.answer("Вы хотели бы запланировать поездку в страну с умеренным климатом?");
@@ -392,37 +342,37 @@ theme: /Weather
             else: 
                 a: Вы хотели бы начать оформление нового тура в данную страну? 
 
-            state: New
-                q: * $comYes *
-                q: верно
-                q: * [это] (он/оно/то что нужно) *
-                q: * (новый/новую/нового/сначала) *
-                q: * (заного/заново) *
-                script:
-                    #Начальная точка оформления заявки:
-                    delete $session.StartPoint;
-                    #Город отправления:
-                    delete $session.departureCity;
-                    #Дата отправления:
-                    delete $session.departureDate;
-                    #Дата возвращения:
-                    delete $session.returnDate;
-                    #Количество людей:
-                    delete $session.people;
-                    #Количество детей:
-                    delete $session.children;
-                    #Бюджет:
-                    delete $session.bablo;
-                    #Звезд у отеля:
-                    delete $session.stars;
-                    #Комментарий для менеджера:
-                    delete $session.comments;
-                go!: /Trip/TripStartPoint
+            # state: New
+            #     q: * $comYes *
+            #     q: верно
+            #     q: * [это] (он/оно/то что нужно) *
+            #     q: * (новый/новую/нового/сначала) *
+            #     q: * (заного/заново) *
+            #     script:
+            #         #Начальная точка оформления заявки:
+            #         delete $session.StartPoint;
+            #         #Город отправления:
+            #         delete $session.departureCity;
+            #         #Дата отправления:
+            #         delete $session.departureDate;
+            #         #Дата возвращения:
+            #         delete $session.returnDate;
+            #         #Количество людей:
+            #         delete $session.people;
+            #         #Количество детей:
+            #         delete $session.children;
+            #         #Бюджет:
+            #         delete $session.bablo;
+            #         #Звезд у отеля:
+            #         delete $session.stars;
+            #         #Комментарий для менеджера:
+            #         delete $session.comments;
+            #     go!: /Trip/TripStartPoint
         
-            state: Old
-                q: * (~продолжить) *
-                q: * (~старая/старую/~прошлая/прошлую/прошлый/старой/предыдущей/предыдушую) *
-                go!: /Trip/TripStartPoint
+            # state: Old
+            #     q: * (~продолжить) *
+            #     q: * (~старая/старую/~прошлая/прошлую/прошлый/старой/предыдущей/предыдушую) *
+            #     go!: /Trip/TripStartPoint
         
         state: NoSure
             q: * $comNo *
@@ -430,21 +380,21 @@ theme: /Weather
             q: * [это] не то [что я хотел] *
             a: Хотите узнать о погоде в другом Городе/Стране?
 
-            state: YesNoSure
-                q: * $comYes *
-                q: верно
-                q: * [это] (он/оно/то что нужно) *
-                script:
-                    delete $session.arrivalPointForCity;
-                    delete $session.arrivalPointForCountry;
-                    delete $session.arrivalCoordinates; 
-                go!: /Weather/WeatherQust  
+            # state: YesNoSure
+            #     q: * $comYes *
+            #     q: верно
+            #     q: * [это] (он/оно/то что нужно) *
+            #     script:
+            #         delete $session.arrivalPointForCity;
+            #         delete $session.arrivalPointForCountry;
+            #         delete $session.arrivalCoordinates; 
+            #     go!: /Weather/WeatherQust  
         
-            state: NoNoSure
-                q: * $comNo *
-                q: * (не верно/неверно) *
-                q: * [это] не то [что я хотел] *
-                a: К сожалению я больше ничем не могу Вам помочь.
+            # state: NoNoSure
+            #     q: * $comNo *
+            #     q: * (не верно/неверно) *
+            #     q: * [это] не то [что я хотел] *
+            #     a: К сожалению я больше ничем не могу Вам помочь.
 
 
 #============================================= ОФОРМЛЕНИЕ ПУТЕВКИ =============================================#
