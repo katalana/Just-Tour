@@ -242,6 +242,8 @@ theme: /Weather
     state: Step3
         #вызвали текущую дату, сравнили ее с сохраненной, определили интервал прогноза
         script:
+#current ЗАМЕНИТЬ НА ПЕРЕМЕННУЮ temp.current
+
             var current = $jsapi.dateForZone("Europe/Moscow","yyyy-MM-dd");
             current = Date.parse (current);
             $session.interval = ($session.Date.timestamp-current)/60000/60/24;
@@ -271,10 +273,10 @@ theme: /Weather
     state: ForecastStep4
         script:
             # запрашиваем погоду по API и сохраняем температуру
-            $temp.Weather = getWeather($session.arrivalCoordinates.lat, $session.arrivalCoordinates.lon, $session.interval);
+            $temp.weather = getWeather($session.arrivalCoordinates.lat, $session.arrivalCoordinates.lon, $session.interval);
             $session.TempForQuest = $temp.Weather.temp;
         # если ответ пришел - выдаем его
-        if: $temp.Weather
+        if: $temp.weather
             # формируем ответ про день/дату, на который получен прогноз
             script: 
                 if ($session.interval == 0) {
@@ -287,7 +289,11 @@ theme: /Weather
                     $session.answerDate = "";
                     $session.answerDate += $session.Date.day + "." + $session.Date.month + "." + $session.Date.year;
                 }
-            a: Погода в {{ $session.typeOfPlace }} {{ $session.arrivalPointForCity }} на {{$session.answerDate}}: {{ $temp.Weather.description }}, {{ $temp.Weather.temp }}°C. Ветер {{ $temp.Weather.wind }} м/с, порывы до {{ $temp.Weather.gust }} м/с.
+            # формируем ответ про город со словом город или про страну в дательном падеже
+            if: $session.place.type == "городе"        
+                a: Погода в {{$session.place.type}} {{$session.place.name}} на {{$session.answerDate}}: {{$temp.weather.description}}, {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
+            else:
+                a: Погода в {{$session.place.namesc}} на {{$session.answerDate}}: {{$temp.weather.description}}, {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
         # если ответ не пришел - извиняемся и идем в главное меню
         else: 
             a: Запрос погоды не получен по техническим причинам. Пожалуйста, попробуйте позже
@@ -304,15 +310,19 @@ theme: /Weather
             $session.historyDay1 += minus($jsapi.dateForZone("Europe/Moscow","yyyy")) + "-" + $session.Date.month + "-" + $session.Date.day;
             $session.historyDay2 += minus($jsapi.dateForZone("Europe/Moscow","yyyy")) + "-" + $session.Date.month + "-" + plus($session.Date.day);
             # запрашиваем погоду  по API и сохраняем температуру
-            $temp.Weather = getHistoricalWeather($session.arrivalCoordinates.lat, $session.arrivalCoordinates.lon, $session.historyDay1, $session.historyDay2);
+            $temp.weather = getHistoricalWeather($session.arrivalCoordinates.lat, $session.arrivalCoordinates.lon, $session.historyDay1, $session.historyDay2);
             $session.TempForQuest = $temp.Weather.temp;
         # если ответ пришел - выдаем его
-        if: $temp.Weather
+        if: $temp.weather
             # формируем ответ про день/дату, на который получен прогноз            
             script: 
                 $session.answerDate = "";
                 $session.answerDate += $session.Date.day + "." + $session.Date.month; 
-            a: Погода в {{ $session.typeOfPlace }} {{ $session.arrivalPointForCity }} в прошлом году на {{$session.answerDate}} была: {{ $temp.Weather.temp }}°C. Ветер {{ $temp.Weather.wind }} м/с, порывы до {{ $temp.Weather.gust }} м/с.
+            # формируем ответ про город со словом город или про страну в дательном падеже
+            if: $session.place.type == "городе"        
+                a: Погода в {{$session.place.type}} {{$session.place.name}} в прошлом году на {{$session.answerDate}} была: {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
+            else:
+                a: Погода в {{$session.place.namesc}} в прошлом году на {{$session.answerDate}} была: {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
         # если ответ не пришел - извиняемся и идем в главное меню
         else: 
             a: Запрос погоды не получен по техническим причинам. Пожалуйста, попробуйте позже
