@@ -19,7 +19,7 @@ function getWeather(lat, lon, day) {
 	weather.temp = response.data.data[day].temp;
 	weather.wind = response.data.data[day].wind_spd;
 	weather.gust = response.data.data[day].wind_gust_spd;
-	weather.description = response.data.data[day].weather.description;
+	weather.descript = response.data.data[day].weather.description;
 
 	return weather;
 	

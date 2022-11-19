@@ -241,10 +241,8 @@ theme: /Weather
     state: Step3
         #вызвали текущую дату, сравнили ее с сохраненной, определили интервал прогноза
         script:
-#current ЗАМЕНИТЬ НА ПЕРЕМЕННУЮ temp.current
-            var current = $jsapi.dateForZone("Europe/Moscow","yyyy-MM-dd");
-            current = Date.parse (current);
-            $session.interval = ($session.date.timestamp - current)/60000/60/24;
+            $temp.nowDate = Date.parse ($jsapi.dateForZone ("Europe/Moscow","yyyy-MM-dd"));
+            $session.interval = ($session.date.timestamp - $temp.nowDate)/60000/60/24;
             #если интервал в рамках границ прогноза - идем его запрашивать
         if: ( $session.interval == 0 || ($session.interval > 0 && $session.interval < 17) )
             go!: /Weather/ForecastStep4
@@ -289,14 +287,14 @@ theme: /Weather
                 }
             # формируем ответ про город со словом город или про страну в дательном падеже
             if: $session.place.type == "городе"        
-                a: Погода в {{$session.place.type}} {{$session.place.name}} на {{$session.answerDate}}: {{$temp.weather.description}}, {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
+                a: Погода в {{$session.place.type}} {{$session.place.name}} на {{$session.answerDate}}: {{($temp.weather.descript).toLowerCase()}}, {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
             else:
-                a: Погода в {{$session.place.namesc}} на {{$session.answerDate}}: {{$temp.weather.description}}, {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
+                a: Погода в {{$session.place.namesc}} на {{$session.answerDate}}: {{$temp.weather.descript}}, {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
         # если ответ не пришел - извиняемся и идем в главное меню
         else: 
             a: Запрос погоды не получен по техническим причинам. Пожалуйста, попробуйте позже
             go!: /Menu/Begin
-#идем спрашивать клиента про климат
+        #идем спрашивать клиента про климат
         go!: /Weather/AreYouSure
     
     # функция запроса исторических данных о погоде
@@ -325,11 +323,11 @@ theme: /Weather
         else: 
             a: Запрос погоды не получен по техническим причинам. Пожалуйста, попробуйте позже
             go!: /Menu/Begin
-#идем спрашивать клиента про климат
+        #идем спрашивать клиента про климат
         go!: /Weather/AreYouSure    
 
     state: AreYouSure
-        #уточняем: точно ли клиент хочет туда поехать?
+        #уточняем: точно ли клиент хочет поехать в умеренный/холодный/теплый климат
         script:
             if ($session.TempForQuest < 25 && $session.TempForQuest > 0) {
                 $reactions.answer("Вы хотели бы запланировать поездку в страну с умеренным климатом?");
