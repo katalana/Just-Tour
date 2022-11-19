@@ -128,8 +128,7 @@ theme: /Menu
             state: Date
                 q: @duckling.date
                 script: $session.date = $parseTree.value;
-                a: записали дату: {{toPrettyString($session.date)}}
-                go!: /Weather/Step2
+                go!: /Weather/Begin
             # интент отказ - предлаагаем варианты и идем в меню
             state: Deny
                 q: * (ничего/никакую) *
@@ -243,7 +242,6 @@ theme: /Weather
         #вызвали текущую дату, сравнили ее с сохраненной, определили интервал прогноза
         script:
 #current ЗАМЕНИТЬ НА ПЕРЕМЕННУЮ temp.current
-
             var current = $jsapi.dateForZone("Europe/Moscow","yyyy-MM-dd");
             current = Date.parse (current);
             $session.interval = ($session.date.timestamp - current)/60000/60/24;
@@ -273,9 +271,9 @@ theme: /Weather
     state: ForecastStep4
         script:
             # запрашиваем погоду по API и сохраняем температуру
-            $temp.weather = getWeather($session.сoordinates.lat, $session.сoordinates.lon, $session.interval);
-            $session.TempForQuest = $temp.Weather.temp;
-        # если ответ пришел - выдаем его
+            $temp.weather = getWeather($session.coordinates.lat, $session.coordinates.lon, $session.interval);
+            $session.TempForQuest = $temp.weather.temp;
+        #если ответ пришел - выдаем его
         if: $temp.weather
             # формируем ответ про день/дату, на который получен прогноз
             script: 
@@ -310,8 +308,8 @@ theme: /Weather
             $session.historyDay1 += minus($jsapi.dateForZone("Europe/Moscow","yyyy")) + "-" + $session.date.month + "-" + $session.date.day;
             $session.historyDay2 += minus($jsapi.dateForZone("Europe/Moscow","yyyy")) + "-" + $session.date.month + "-" + plus($session.date.day);
             # запрашиваем погоду  по API и сохраняем температуру
-            $temp.weather = getHistoricalWeather($session.сoordinates.lat, $session.сoordinates.lon, $session.historyDay1, $session.historyDay2);
-            $session.TempForQuest = $temp.Weather.temp;
+            $temp.weather = getHistoricalWeather($session.coordinates.lat, $session.coordinates.lon, $session.historyDay1, $session.historyDay2);
+            $session.TempForQuest = $temp.weather.temp;
         # если ответ пришел - выдаем его
         if: $temp.weather
             # формируем ответ про день/дату, на который получен прогноз            
