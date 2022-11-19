@@ -14,8 +14,7 @@ theme: /
         # проверяем есть ли имя клиента, представляемся соотв.образом и идем в Меню или Имя
         if: $client.name
             a: Здравствуйте, {{$client.name}}. Это Мария, бот Just Tour.
-            go!: /Name/ConfirmName
-# БУДЕТ go!: /Menu/Begin
+            go!: /Menu/Begin
         else:
             a: Здравствуйте, я Мария, бот туристической компании Just Tour.
             go!: /Name/AskName
@@ -32,7 +31,7 @@ theme: /
 
     # Глобальный стейт при выходе из сценария по желанию клиента
     state: Exit
-        a: Хорошо. Буду на связи. Обращайтесь, если понадоблюсь!
+        a: Буду на связи. Обращайтесь, если понадоблюсь!
         script: $session = {}      //обнулили переменные сессии
 
     # Глобальный стейт при завершении сценария после отправки заявки на тур
@@ -52,8 +51,7 @@ theme: /Name
         # имя совпало с переменной из списка - идем в Меню
         state: GetName
             q: * $Name *
-            script:
-                $client.name = $parseTree._Name.name;
+            script: $client.name = $parseTree._Name.name;
             a: {{$client.name}}, приятно познакомиться!    
             go!: /Menu/Begin
         # не хочу знакомиться - соглашаемся и идем в меню
@@ -65,49 +63,23 @@ theme: /Name
         # другое непонятное слово - уточняем имя это или нет
         state: GetStrangeName
             q: * 
-            script:
-                $session.probablyName = $request.query;
+            script: $session.probablyName = $request.query;
             a: {{$session.probablyName}}! Какое необычное имя. Вы не ошиблись? Я могу вас так называть?
             buttons:
                 "Да"
                 "Нет"
-            # если имя - идем в стейт сохранения имени            
+            # если имя - сохраняем его и идем в Меню
             state: Yes
                 q: (да/* верно *)
-                go!: /Name/ConfirmName/Yes
+                script: $client.name = $session.probablyName;
+                a: {{$client.name}}, приятно познакомиться!
+                go!: /Menu/Begin
             # если не имя - соглашаемся не знакомиться и идем в Меню
             state: No
                 q: (нет/* не верно *)
                 a: Как вам будет удобно. Обойдемся без знакомства.
                 go!: /Menu/Begin
                 
-# Если уже есть имя - проверяем актуально ли оно
-    state: ConfirmName
-        #|| modal = true
-        a: Ваше имя {{$client.name}}, верно?
-        script:
-            $session.probablyName = $client.name;
-        buttons:
-            "Да"
-            "Нет"
-# если да - сохраняем имя и очищаем переменную варианта имени     
-        state: Yes
-            q: (да/* верно *)
-            script:
-                $client.name = $session.probablyName;
-            a: {{$client.name}}, приятно познакомиться!
-            go!: /Menu/Begin
-# если нет - снова идем снова спрашивать имя
-        state: No
-            q: (нет/не [верно])
-            go!: /Name/AskName
-# Если нет внятного ответа - возвращаемся к вопросу    
-        state: CatchAll || noContext = true 
-            event: noMatch
-            a: Пожалуйста, ответьте да или нет:
-            go!: /Name/ConfirmName            
-            
-            
 #====================================================== МЕНЮ ===========================================================
 
 theme: /Menu
@@ -136,6 +108,7 @@ theme: /Menu
             q: * не хочу *
             q: * не надо *
             q: * отказ *
+            a: Как скажете.
             go!: /Exit
         # интент город/страна 
         state: ChooseLocation
@@ -191,17 +164,17 @@ theme: /Weather
             # иначе спрашиваем, будет ли город, идем на обработку этого вопроса
             else:
                 a: Смотрю погоду в стране {{$session.place.name}}. Можете назвать город?
-                go!: /Weather/AskCity
+                go!: /Weather/WeatherAskCity
         # если нет ни города, ни страны - запрашиваем
         else:    
             a: Назовите город или страну
         # если назвали город - записали город и идем на запрос даты    
-        state: WeatherSity    
+        state: WeatherCity    
             q: * $City *
             script:
                 $session.place = {name: $parseTree._City.name, namesc: "", type: "городе"}
                 $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
-            go!: /Weather/InputDate
+            go!: /Weather/WeatherStep2
         # если назвали страну - записали страну и идем на начало чтоб спросить про город
         state: WeatherContry
             q: * $Country *
@@ -215,20 +188,57 @@ theme: /Weather
             a: Простите, я не знаю такого названия
             go!: /Weather/WeatherStart
 
+    #обработка запроса города если есть только страна
+    state: WeatherAskCity
+        # назван город - сохранили его и идем смотреть прогноз
+        state: CityWeatherAskCity 
+            q: * $City *
+            script:
+                $session.place = {name: $parseTree._City.name, namesc: "", type: "городе"}
+                $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
+            go!: /Weather/WeatherStep2        
+        #ответ тупо "да" - просим назвать город, идем на начало обработки запроса
+        state: YesWeatherAskCity
+            q: да *
+            q: * [да] (могу/конечно) *
+            a: Назовите же его скорее!
+            go!: /Weather/WeatherAskCity
+        #ответ нет - идем смотреть прогноз по стране
+        state: NoWeatherAskCity
+            q: * нет *
+            q: * [нет] (не могу) *
+            a: Окей, смотрим прогноз в среднем по стране
+            go!: /Weather/WeatherStep2
+        #любой другой ответ - тоже идем смотреть прогноз по стране    
+        state: NoMatchWeatherAskCity
+            event: noMatch
+            a: Простите, я не знаю такого города. Посмотрю прогноз по стране
+            go!: /Weather/WeatherStep2
+            
+                
     #запрос даты
-    state: InputDate
-        #если дата уже была раньше записана - идем на проверку даты
+    state: WeatherStep2
+        #если дата уже была раньше сохранена - идем на Шаг3
         if: $session.date
-            go!: /Weather/CheckDate
+            go!: /Weather/WeatherStep3
+        #иначе - спрашиваем дату
         else: 
             a: На какую дату смотрим прогноз погоды?
-        
-        state: jffjhdfkfdkjfdjk
+        #названа дата - сохраняем ее и идем на Шаг3
+        state: WeatherStep2Date
             q: @duckling.date            
-#ТУТ ПИШЕМ ВЛОЖЕННЫЕ ОТВЕТЫ И ИДЕМ ДАЛЬШЕ
-            
+            script: $session.Date = $parseTree.value
+            go!: /Weather/WeatherStep3
+        
+        state: WeatherStep2Deny
+            q: * (ничего/никакую) *
+            q: * не хочу *
+            q: * не надо *
+            q: * отказ*
+            a: Как скажете.
+            go!: /Exit
     # проверка даты
-    state: CheckDate
+    state: WeatherStep3
         
 #СЮДА ПОДТЯГИВАЕМ АЛГОРИТМ ПРОВЕРКИ ДАТЫ И ВЫХОД НА АПИ
 
@@ -440,6 +450,41 @@ theme: /Weather
 #============================================= ОФОРМЛЕНИЕ ПУТЕВКИ =============================================#
 
 theme:/Trip
+    
+    
+    # Если уже есть имя - проверяем актуально ли оно
+    state: ConfirmName
+        #|| modal = true
+        a: Ваше имя {{$client.name}}, верно?
+        script: $session.probablyName = $client.name;
+        buttons:
+            "Да"
+            "Нет"
+        # если да - сохраняем имя и очищаем переменную варианта имени     
+        state: Yes
+            q: (да/* верно *)
+            script: $client.name = $session.probablyName;
+            a: {{$client.name}}, приятно познакомиться!
+#ИЗМЕНИТЬ ПЕРЕХОД
+            # go!: /Menu/Begin
+        # если нет - снова идем снова спрашивать имя
+        state: No
+            q: (нет/не [верно])
+#ИЗМЕНИТЬ ПЕРЕХОД
+            # go!: /Name/AskName
+        # Если нет внятного ответа - возвращаемся к вопросу    
+        state: CatchAll || noContext = true 
+            event: noMatch
+            a: Пожалуйста, ответьте да или нет:
+            go!: /Name/ConfirmName        
+#ДОБАВИТЬ ИНТЕНТ ОТКАЗА, желательно зацепить его на вторую ситуацию отказа из схемы
+        state: DenyName
+    
+    
+    
+    
+    
+    
     
     state: TripStartPoint
         q!: * (~Путевка/тур*/туристичес*/подбери (тур/путевку)) * 
