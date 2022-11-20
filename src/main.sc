@@ -165,6 +165,7 @@ theme: /Weather
             a: Назовите город или страну
         #если назвали город - записали город и идем на запрос даты    
         state: City    
+# НЕ ЛОВИТ а в самаре ... разобраться, попробовать через @pymorphy.geox вытаскивать?
             q: * $City *
             script:
                 $session.place = {name: $parseTree._City.name, namesc: "", type: "city"}
@@ -172,6 +173,7 @@ theme: /Weather
             go!: /Weather/Step2
         #если назвали страну - записали страну и идем на начало чтоб спросить про город
         state: Contry
+# НЕ ЛОВИТ а в Турции ... разобраться, попробовать через @pymorphy.geox вытаскивать?
             q: * $Country *
             script:
                 $session.place = {name: $parseTree._Country.name, namesc: $parseTree._Country.namesc, type: "стране"}
@@ -338,8 +340,9 @@ theme: /Weather
             "Нет, не планирую"
         # введен город/страна - запомнили их и идем на старт погоды
         state: Location
-            q: * $City *
-            q: * $Country *
+            q: (* $City *)
+            q: (* $Country *)
+# НЕ ЛОВИТ а в самаре ... разобраться, попробовать через @pymorphy.geox вытаскивать?
             script: 
                 if ($parseTree.City) {
                     $session.place = {name: $parseTree._City.name, namesc: "", type: "city"};
@@ -353,7 +356,7 @@ theme: /Weather
             go!: /Weather/Begin
         # введена дата - запомнили её и идем на Шаг3 погоды
         state: Date
-            q: @duckling.date
+            q: * @duckling.date *
             script: $session.date = $parseTree.value;
             go!: /Weather/Step3
         #ответ нет - идем на шаг6 погоды
@@ -399,7 +402,10 @@ theme: /Weather
             q: [~другой] (~место) (~дата)
             q: * $comYes *
             q: (да/давайте)
-            script: delete ($session.place, $session.coordinates, $session.date)
+            script: 
+                delete $session.place, 
+                delete $session.coordinates, 
+                delete $session.date
             go!: /Weather/Begin     
         #не нужен прогноз - идем на выход
         state: Deny
