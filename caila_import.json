@@ -35,11 +35,11 @@
     "priority" : 0
   } ],
   "entities" : [ ],
-  "enabledSystemEntities" : [ "mystem.geo", "duckling.number", "duckling.time", "duckling.date", "duckling.phone-number" ],
+  "enabledSystemEntities" : [ "duckling.number", "duckling.time", "duckling.date", "duckling.phone-number" ],
   "spellerDictionary" : [ ],
   "systemEntities" : [ {
     "name" : "mystem.geo",
-    "enabled" : true
+    "enabled" : false
   }, {
     "name" : "mystem.persn",
     "enabled" : false
