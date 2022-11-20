@@ -93,8 +93,8 @@ theme: /Menu
         # ДОБАВИТЬ ИНТЕНТЫ ПЕРЕДЕЛАТЬ КНОПКИ НА ЧЕТКИЕ ПЕРЕХОДЫ        
         # переход по кнопкам ведет в нужные стейты
         buttons:
-            "Оформить заявку на тур"
             "Рассказать о погоде"
+            "Оформить заявку на тур"
         # интент Что еще умеешь - идем в начало выбора       
         state: WhatElse
             q: * [что] еще [умеешь]*
@@ -112,16 +112,16 @@ theme: /Menu
         state: Location
             q: * $City *
             q: * $Country *
-            #если назван город - запоминаем город и его координаты
-            if: $parseTree.City
-                script:
-                    $session.place = {name: $parseTree._City.name, namesc: "", type: "city"}
+            #запоминаем город или страну и их координаты
+            script: 
+                if ($parseTree.City) {
+                    $session.place = {name: $parseTree._City.name, namesc: "", type: "city"};
                     $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
-            #иначе - запоминаем страну и её координаты
-            else: 
-                script:
-                    $session.place = {name: $parseTree._Country.name, namesc: $parseTree._Country.namesc, type: ""}
-                    $session.coordinates = {lat: $parseTree._Country.lat, lon: $parseTree._Country.lon}
+                }
+                else {
+                    $session.place = {name: $parseTree._Country.name, namesc: $parseTree._Country.namesc, type: ""};
+                    $session.coordinates = {lat: $parseTree._Country.lat, lon: $parseTree._Country.lon};
+                }
             #запрашиваем дату
             a: {{$session.place.name}}? Интересная идея! Сейчас узнаю какая там погода. Какую дату посмотреть?
             # дата названа - записываем дату и идем в прогноз
@@ -212,13 +212,13 @@ theme: /Weather
             
     #запрос даты
     state: Step2
-        #если дата уже была раньше сохранена - идем на Шаг3
+        #если дата уже была раньше сохранена - идем на Шаг3 погоды
         if: $session.date
             go!: /Weather/Step3
         #иначе - спрашиваем дату
         else: 
             a: На какую дату смотрим прогноз погоды?
-        #названа дата - сохраняем ее и идем на Шаг3
+        #названа дата - сохраняем ее и идем на Шаг3 погоды
         state: Date
             q: @duckling.date            
             script: $session.date = $parseTree.value
@@ -270,7 +270,7 @@ theme: /Weather
         script:
             # запрашиваем погоду по API и сохраняем температуру
             $temp.weather = getWeather($session.coordinates.lat, $session.coordinates.lon, $session.interval);
-            $session.TempForQuest = $temp.weather.temp;
+            $session.temperature = $temp.weather.temp;
         #если ответ пришел - выдаем его
         if: $temp.weather
             script: 
@@ -293,7 +293,7 @@ theme: /Weather
             a: Запрос погоды не получен по техническим причинам. Пожалуйста, попробуйте позже
             go!: /Menu/Begin
         #идем спрашивать клиента про климат
-        go!: /Weather/AreYouSure
+        go!: /Weather/Step5
     
     # функция запроса исторических данных о погоде
     state: HistoryStep4
@@ -305,7 +305,7 @@ theme: /Weather
             $session.historyDay2 += minus($jsapi.dateForZone("Europe/Moscow","yyyy")) + "-" + $session.date.month + "-" + plus($session.date.day);
             # запрашиваем погоду  по API и сохраняем температуру
             $temp.weather = getHistoricalWeather($session.coordinates.lat, $session.coordinates.lon, $session.historyDay1, $session.historyDay2);
-            $session.TempForQuest = $temp.weather.temp;
+            $session.temperature = $temp.weather.temp;
         # если ответ пришел - выдаем его
         if: $temp.weather
             # формируем ответ про день/дату, на который получен прогноз            
@@ -323,84 +323,92 @@ theme: /Weather
             a: Запрос погоды не получен по техническим причинам. Пожалуйста, попробуйте позже
             go!: /Menu/Begin
         #идем спрашивать клиента про климат
-        go!: /Weather/AreYouSure    
+        go!: /Weather/Step5
 
-    state: AreYouSure
+    state: Step5
         #уточняем: точно ли клиент хочет поехать в умеренный/холодный/теплый климат
-        script:
-            if ($session.TempForQuest < 25 && $session.TempForQuest > 0) {
-                $reactions.answer("Вы хотели бы запланировать поездку в страну с умеренным климатом?");
-            }
-             else if ($session.TempForQuest < 0 || $session.TempForQuest == 0) {
-                $reactions.answer("Вы хотели бы запланировать поездку в страну с холодным климатом?");
-            }
-            else if ($session.TempForQuest > 25 || $session.TempForQuest == 25) {
-                $reactions.answer("Вы хотели бы запланировать поездку в страну с жарким климатом?");
-            }
-
-        state: YesSure
-            q: * $comYes *
-            q: верно
-            q: * [это] (он/оно/то что нужно) *
-            if: $session.StartPoint
-                a: Вы хотели бы начать оформление нового тура в данную страну или хотели бы продолжить оформление старой заявки? 
-            else: 
-                a: Вы хотели бы начать оформление нового тура в данную страну? 
-
-            # state: New
-            #     q: * $comYes *
-            #     q: верно
-            #     q: * [это] (он/оно/то что нужно) *
-            #     q: * (новый/новую/нового/сначала) *
-            #     q: * (заного/заново) *
-            #     script:
-            #         #Начальная точка оформления заявки:
-            #         delete $session.StartPoint;
-            #         #Город отправления:
-            #         delete $session.departureCity;
-            #         #Дата отправления:
-            #         delete $session.departureDate;
-            #         #Дата возвращения:
-            #         delete $session.returnDate;
-            #         #Количество людей:
-            #         delete $session.people;
-            #         #Количество детей:
-            #         delete $session.children;
-            #         #Бюджет:
-            #         delete $session.bablo;
-            #         #Звезд у отеля:
-            #         delete $session.stars;
-            #         #Комментарий для менеджера:
-            #         delete $session.comments;
-            #     go!: /Trip/TripStartPoint
-        
-            # state: Old
-            #     q: * (~продолжить) *
-            #     q: * (~старая/старую/~прошлая/прошлую/прошлый/старой/предыдущей/предыдушую) *
-            #     go!: /Trip/TripStartPoint
-        
+        if: ($session.temperature < 25 && $session.temperature > 0)
+            a: Вы действительно планируете поездку в страну с умеренным климатом?
+        if: ($session.temperature < 0 || $session.temperature == 0)
+            a: Вы действительно планируете поездку в страну с холодным климатом?
+        if: ($session.temperature > 25 || $session.temperature == 25)
+            a: Вы действительно планируете поездку в страну с жарким климатом?
+        buttons:
+            "Да, планирую"
+            "Нет, не планирую"
+        # введен город/страна - запомнили их и идем на старт погоды
+        state: Location
+            q: * $City *
+            q: * $Country *
+            script: 
+                if ($parseTree.City) {
+                    $session.place = {name: $parseTree._City.name, namesc: "", type: "city"};
+                    $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
+                }
+                else {
+                    $session.place = {name: $parseTree._Country.name, namesc: $parseTree._Country.namesc, type: ""};
+                    $session.coordinates = {lat: $parseTree._Country.lat, lon: $parseTree._Country.lon};
+                }
+            a: {{$session.place.name}}? Сейчас узнаю какая там погода.
+            go!: /Weather/Begin
+        # введена дата - запомнили её и идем на Шаг3 погоды
+        state: Date
+            q: @duckling.date
+            script: $session.date = $parseTree.value;
+            go!: /Weather/Step3
+        #ответ нет - идем на шаг6 погоды
         state: NoSure
             q: * $comNo *
             q: * (не верно/неверно) *
-            q: * [это] не то [что я хотел] *
-            a: Хотите узнать о погоде в другом Городе/Стране?
-
-            # state: YesNoSure
-            #     q: * $comYes *
-            #     q: верно
-            #     q: * [это] (он/оно/то что нужно) *
-            #     script:
-            #         delete $session.arrivalPointForCity;
-            #         delete $session.arrivalPointForCountry;
-            #         delete $session.arrivalCoordinates; 
-            #     go!: /Weather/WeatherQust  
-        
-            # state: NoNoSure
-            #     q: * $comNo *
-            #     q: * (не верно/неверно) *
-            #     q: * [это] не то [что я хотел] *
-            #     a: К сожалению я больше ничем не могу Вам помочь.
-
+            q: * не планирую *
+            go!: /Weather/Step6
+        #если да - предлагаем оформить заявку (или продолжить её оформление)
+        state: YesSure
+            q: * $comYes *
+            q: (да/верно)
+            q: планирую
+            if: $session.step
+                a: Продолжим оформление заявки на тур?
+            else: 
+                if: ($session.place.type == "city") 
+                    a: Давайте оформим заявку на тур в этот город?
+                else:     
+                    a: Давайте оформим заявку на тур в эту страну?
+                    
+            #если да - идем в раздел Заявка
+            state: Yes
+                q: * $comYes *
+                q: (да/верно)
+                q: * давайте *
+                go!: Trip/Begin
+            #если нет - идем на шаг6 погоды    
+            state: Deny
+            q: * $comNo *
+            q: * (не верно/неверно) *
+            q: * не планирую *
+            go!: /Weather/Step6        
+                    
+    state: Step6                
+        a: Давайте посмотрим климат в другом месте?
+        buttons: 
+            "Прогноз в другом месте"
+            "Не нужен прогноз"
+        #другое место очищаем место и дату, идем на начало прогноза
+        state: ChangePlaceDate
+            q: * другое место и дата *
+            q: [~другой] (~место) (~дата)
+            q: * $comYes *
+            q: (да/давайте)
+            script: delete ($session.place, $session.coordinates, $session.date)
+            go!: /Weather/Begin     
+        #не нужен прогноз - идем на выход
+        state: Deny
+            q: * $comNo *
+            q: * (не хочу/не надо) *
+            q: * не нуж* *
+            a: Как скажете!
+            go!: /Exit
+        #названа дата - запомнили её и идем на шаг3 прогноза
 
 #============================================= ОФОРМЛЕНИЕ ПУТЕВКИ =============================================#
 
@@ -633,7 +641,8 @@ theme: /Weather
 theme: /FullData               
     
     state: Screen
-        
+#ОСТАВЛЯТЬ ЛИ ЭТУ ЧАСТЬ СКРИПТА??!  
+#answer - в temp!
         script:
             var answer = "";
             answer += $client.name + ", подскажите, все ли верно:" + "\n";
@@ -731,6 +740,7 @@ theme: /FullData
         
 theme: /SendMail
     state: Mail
+#ПЕРЕМЕСТИТЬ answer - в temp!    
         script:
             var ClientData = "";
             var Subject = "Заявка от клиента " + $client.name;
