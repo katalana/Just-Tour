@@ -154,7 +154,7 @@ theme: /Weather
         # если уже есть город/страна
         if: $session.place
             # если это город - идем на запрос даты
-            if: $session.place.type
+            if: ($session.place.type == "city")
                 go!: /Weather/Step2
             # иначе спрашиваем, будет ли город, идем на обработку этого вопроса
             else:
@@ -283,7 +283,7 @@ theme: /Weather
                     }
                 # формируем часть ответа про место
                 $temp.answerPlace = "";
-                if ($session.place.type) $temp.answerPlace += "городе " + $session.place.name
+                if ($session.place.type == "city") $temp.answerPlace += "городе " + $session.place.name
                     else $temp.answerPlace += $session.place.namesc;
             # выдаем полный ответ про погоду
             a: Погода в {{$temp.answerPlace}} на {{$temp.answerDate}}: {{($temp.weather.descript).toLowerCase()}}, {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
@@ -314,7 +314,7 @@ theme: /Weather
                 $temp.answerDate += $session.date.day + "." + $session.date.month; 
                 # формируем часть ответа про место
                 $temp.answerPlace = "";
-                if ($session.place.type) $temp.answerPlace += "городе " + $session.place.name
+                if ($session.place.type == "city") $temp.answerPlace += "городе " + $session.place.name
                     else $temp.answerPlace += $session.place.namesc;
             # выдаем полный ответ про погоду
             a: Погода в {{$temp.answerPlace}} в прошлом году на {{$temp.answerDate}} была: {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
