@@ -115,12 +115,12 @@ theme: /Menu
             #если назван город - запоминаем город и его координаты
             if: $parseTree.City
                 script:
-                    $session.place = {name: $parseTree._City.name, namesc: "", type: "городе"}
+                    $session.place = {name: $parseTree._City.name, namesc: "", type: "city"}
                     $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
             #иначе - запоминаем страну и её координаты
             else: 
                 script:
-                    $session.place = {name: $parseTree._Country.name, namesc: $parseTree._Country.namesc, type: "стране"}
+                    $session.place = {name: $parseTree._Country.name, namesc: $parseTree._Country.namesc, type: ""}
                     $session.coordinates = {lat: $parseTree._Country.lat, lon: $parseTree._Country.lon}
             #запрашиваем дату
             a: {{$session.place.name}}? Интересная идея! Сейчас узнаю какая там погода. Какую дату посмотреть?
@@ -154,7 +154,7 @@ theme: /Weather
         # если уже есть город/страна
         if: $session.place
             # если это город - идем на запрос даты
-            if: $session.place.type == "городе"
+            if: $session.place.type
                 go!: /Weather/Step2
             # иначе спрашиваем, будет ли город, идем на обработку этого вопроса
             else:
@@ -167,7 +167,7 @@ theme: /Weather
         state: City    
             q: * $City *
             script:
-                $session.place = {name: $parseTree._City.name, namesc: "", type: "городе"}
+                $session.place = {name: $parseTree._City.name, namesc: "", type: "city"}
                 $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
             go!: /Weather/Step2
         #если назвали страну - записали страну и идем на начало чтоб спросить про город
@@ -189,7 +189,7 @@ theme: /Weather
         state: City
             q: * $City *
             script:
-                $session.place = {name: $parseTree._City.name, namesc: "", type: "городе"}
+                $session.place = {name: $parseTree._City.name, namesc: "", type: "city"}
                 $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
             go!: /Weather/Step2        
         #ответ тупо "да" - просим назвать город, идем на начало обработки запроса
@@ -273,23 +273,21 @@ theme: /Weather
             $session.TempForQuest = $temp.weather.temp;
         #если ответ пришел - выдаем его
         if: $temp.weather
-            # формируем ответ про день/дату, на который получен прогноз
             script: 
-                if ($session.interval == 0) {
-                    $session.answerDate = "сегодня";
-                }
-                else if ($session.interval == 1) {
-                    $session.answerDate = "завтра";
-                }
-                else {
-                    $session.answerDate = "";
-                    $session.answerDate += $session.date.day + "." + $session.date.month + "." + $session.date.year;
-                }
-            # формируем ответ про город со словом город или про страну в дательном падеже
-            if: $session.place.type == "городе"        
-                a: Погода в {{$session.place.type}} {{$session.place.name}} на {{$session.answerDate}}: {{($temp.weather.descript).toLowerCase()}}, {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
-            else:
-                a: Погода в {{$session.place.namesc}} на {{$session.answerDate}}: {{$temp.weather.descript}}, {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
+                # формируем часть ответа про день/дату, на который получен прогноз
+                if ($session.interval == 0) $temp.answerDate = "сегодня";
+                    else if ($session.interval == 1) $temp.answerDate = "завтра";
+                    else {
+                        $temp.answerDate = "";
+                        $temp.answerDate += $session.date.day + "." + $session.date.month + "." + $session.date.year;
+                    }
+                # формируем часть ответа про место
+                $temp.answerPlace = "";
+                if ($session.place.type) $temp.answerPlace += "городе " + $session.place.name
+                    else $temp.answerPlace += $session.place.namesc;
+            # выдаем полный ответ про погоду
+            a: Погода в {{$temp.answerPlace}} на {{$temp.answerDate}}: {{($temp.weather.descript).toLowerCase()}}, {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
+            
         # если ответ не пришел - извиняемся и идем в главное меню
         else: 
             a: Запрос погоды не получен по техническим причинам. Пожалуйста, попробуйте позже
@@ -312,13 +310,14 @@ theme: /Weather
         if: $temp.weather
             # формируем ответ про день/дату, на который получен прогноз            
             script: 
-                $session.answerDate = "";
-                $session.answerDate += $session.date.day + "." + $session.date.month; 
-            # формируем ответ про город со словом город или про страну в дательном падеже
-            if: $session.place.type == "городе"        
-                a: Погода в {{$session.place.type}} {{$session.place.name}} в прошлом году на {{$session.answerDate}} была: {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
-            else:
-                a: Погода в {{$session.place.namesc}} в прошлом году на {{$session.answerDate}} была: {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
+                $temp.answerDate = "";
+                $temp.answerDate += $session.date.day + "." + $session.date.month; 
+                # формируем часть ответа про место
+                $temp.answerPlace = "";
+                if ($session.place.type) $temp.answerPlace += "городе " + $session.place.name
+                    else $temp.answerPlace += $session.place.namesc;
+            # выдаем полный ответ про погоду
+            a: Погода в {{$temp.answerPlace}} в прошлом году на {{$temp.answerDate}} была: {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
         # если ответ не пришел - извиняемся и идем в главное меню
         else: 
             a: Запрос погоды не получен по техническим причинам. Пожалуйста, попробуйте позже
