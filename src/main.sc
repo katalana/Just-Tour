@@ -563,7 +563,7 @@ theme:/Trip
         #введено что-то иное - сохраняем это в другой переменной
         state: NoDate
             q: *
-            script: $session.noDate = $parseTree.value;
+            script: $session.noDate = $request.query;
             go!: /Trip/Step3
     
     #запрашиваем длительность поездки
@@ -580,212 +580,15 @@ theme:/Trip
         
         state: Answer
             q: *
-            script: $session.duration = $parseTree.value;
-# ИЛИ request.query? Разобраться!!!            
+            script: $session.duration = $request.query;
             go!: /Trip/Step5
             
             
             
-        #введена дата - сохраняем ее
-        state: Date
-            q: * @duckling.date *
-            script: $session.date = $parseTree.value;
-            go!: /Trip/Step3
-        #введено что-то иное - сохраняем это в другой переменной
-        state: NoDate
-            q: *
-            script: $session.noDate = $parseTree.value;
-            go!: /Trip/Step3
-    
-    
-    
-#     state: TripStartPoint
-#         q!: * (~Путевка/тур*/туристичес*/подбери (тур/путевку)) * 
-#         if: $session.StartPoint
-#             if: $session.departureCity
-#                 go!: /Trip/TripStartPoint/DepartureCity 
-#             else:
-#                 a: {{ $client.name }}, назовите, пожалуйста, город отправления. Если Вы ошибетесь в данных - не волнуйтесь, наш менеджер свяжется с Вами для уточнения данных.   
-#         else:
-#             a: {{ $client.name }}, назовите, пожалуйста, город отправления. Если Вы ошибетесь в данных - не волнуйтесь, наш менеджер свяжется с Вами для уточнения данных.
-#             script:
-#                 $session.StartPoint = 1;
-    
-#         state: DepartureCity
-#             q: * $City *
-#             if: $session.departureCity 
-#                 if: $session.departureDate
-#                     go!: /Trip/TripStartPoint/DepartureCity/DepartureDate
-#                 else:
-#                     a: Желаемая дата отправления?
-#             else:
-#                 script:
-#                     $session.departureCity = $parseTree._City.name;
-#                 if: $session.departureDate
-#                     go!: /Trip/TripStartPoint/DepartureCity/DepartureDate
-#                 else:
-#                     a: Желаемая дата отправления?
-            
-            
-#             state: DepartureDate
-#                 q: * (@duckling.date/@duckling.time) *
-#                 if: $session.departureDate
-#                     if: $session.arrivalPointForCity  
-#                         go!: /Trip/TripStartPoint/DepartureCity/DepartureDate/ArrivalCity
-#                     elseif: $session.arrivalPointForCountry 
-#                         go!: /Trip/TripStartPoint/DepartureCity/DepartureDate/ArrivalCountry
-#                     else:
-#                         a: Куда бы вы хотели отправиться?
-#                 else:
-#                     script:
-#                         $session.departureDate = $parseTree.value;
-#                     if: $session.arrivalPointForCity  
-#                         go!: /Trip/TripStartPoint/DepartureCity/DepartureDate/ArrivalCity
-#                     elseif: $session.arrivalPointForCountry 
-#                         go!: /Trip/TripStartPoint/DepartureCity/DepartureDate/ArrivalCountry
-#                     else:
-#                         a: Куда бы вы хотели отправиться?
-                
-                
-#                 state: ArrivalCity
-#                     q: * $City *
-#                     if: $session.arrivalPointForCity  
-#                         if: $session.returnDate
-#                             go!: /Trip/ReturnDate
-#                         else:
-#                             a: Желаемая дата возвращения?
-#                             go: /Trip/ReturnDate
-#                     else:
-#                         script:
-#                             $session.arrivalPointForCity = $parseTree._City.name;
-#                         if: $session.returnDate
-#                             go!: /Trip/ReturnDate
-#                         else:
-#                             a: Желаемая дата возвращения?
-#                             go: /Trip/ReturnDate
-                
-                
-#                 state: ArrivalCountry
-#                     q: * $Country *
-#                     if: $session.arrivalPointForCountry  
-#                         if: $session.returnDate
-#                             go!: /Trip/ReturnDate
-#                         else:
-#                             a: Желаемая дата возвращения?
-#                             go: /Trip/ReturnDate
-#                     else:
-#                         script:
-#                             $session.arrivalPointForCountry = $parseTree._Country.name;
-#                         if: $session.returnDate
-#                             go!: /Trip/ReturnDate
-#                         else:
-#                             a: Желаемая дата возвращения?
-#                             go: /Trip/ReturnDate
-                
-                
-#                 state: CatchAll || noContext = true
-#                     event: noMatch
-#                     a: Простите, Но туда у нас нет туров. Выберете другую точку.
 
-#     state: ReturnDate            
-#         q: * (@duckling.date/@duckling.time) *
-#         if: $session.returnDate
-#             if: $session.people
-#                 go!: /Trip/ReturnDate/People
-#             else:
-#                 a: Количество людей в поездке?
-#         else:
-#             script:
-#                 $session.returnDate = $parseTree.value;
-#             if: $session.people
-#                 go!: /Trip/ReturnDate/People
-#             else:
-#                 a: Количество людей в поездке? 
-        
-#         buttons:
-#             "уточню позже"    
-            
-#         state: People
-#             q: *
-#             if: $session.people
-#                 if: $session.children
-#                     go!: /Trip/ReturnDate/People/Children
-#                 else:
-#                     a: Количество детей в поездке?
-#             else:
-#                 script:
-#                     $session.people = $request.query;
-#                 if: $session.children
-#                     go!: /Trip/ReturnDate/People/Children
-#                 else:
-#                     a: Количество детей в поездке?
-            
-#             buttons:
-#                 "уточню позже"    
-            
-#             state: Children
-#                 q: * 
-#                 if: $session.children
-#                     if: $session.bablo
-#                         go!: /Trip/ReturnDate/People/Children/Bablo
-#                     else:
-#                         a: Какой у Вас Бюджет?
-#                 else:
-#                     script:
-#                         $session.children = $request.query;
-#                     if: $session.bablo
-#                         go!: /Trip/ReturnDate/People/Children/Bablo
-#                     else:
-#                         a: Какой у Вас Бюджет?
-                 
-#                 buttons:
-#                     "уточню позже"    
-            
-#                 state: Bablo
-#                     q: *
-#                     if: $session.bablo
-#                         if: $session.stars
-#                             go!: /Trip/ReturnDate/People/Children/Bablo/Stars
-#                         else:
-#                             a: Скольки звездочный отель ?
-#                     else:
-#                         script:
-#                             $session.bablo = $request.query;
-#                         if: $session.stars
-#                             go!: /Trip/ReturnDate/People/Children/Bablo/Stars
-#                         else:
-#                             a: Скольки звездочный отель ?
-            
-#                     buttons:
-#                         "уточню позже"    
-            
-#                     state: Stars
-#                         q: *
-#                         if: $session.stars
-#                             if: $session.comments
-#                                 go!: /Trip/ReturnDate/People/Children/Bablo/Stars/Comments
-#                             else:
-#                                 a: Комментарий для менеджера?
-#                         else:
-#                             script:
-#                                 $session.stars = $request.query;
-#                             if: $session.comments
-#                                 go!: /Trip/ReturnDate/People/Children/Bablo/Stars/Comments
-#                             else:
-#                                 a: Комментарий для менеджера?
-                 
-#                         buttons:
-#                             "нет комментариев"    
-            
-#                         state: Comments
-#                             q: *
-#                             if: $session.comments
-#                                 go!: /FullData/Screen
-#                             script:
-#                                 $session.comments = $request.query;
-#                             go!: /FullData/Screen
 
-#============================================= Вывод данных для пользователя и возможность изменить их =============================================#
+
+#========================= Вывод данных для пользователя и возможность изменить их ==========================
 
             
 theme: /FullData               
@@ -815,83 +618,34 @@ theme: /FullData
         buttons:
             "верно"  
             "заполнить заново"
-            "поменять данные"
         
         state: Yes
             q: * (да/верно) *
             go!: /SendMail/Mail
 
-            # a: Осталось самую малость.  
-            # if: $client.phone
-            #   go!: /Phone/Confirm
-            # else:
-            #     go!: /Phone/Ask
-
-        # state: No
-        #     q: * заполнить заново *
-        #     script:
-        #         delete $session.StartPoint;
-        #         delete $session.departureCity;
-        #         delete $session.departureDate;
-        #         delete $session.arrivalPointForCity;
-        #         delete $session.arrivalPointForCountry;
-        #         delete $session.returnDate;
-        #         delete $session.people;
-        #         delete $session.children;
-        #         delete $session.bablo;
-        #         delete $session.stars;
-        #         delete $session.comments;
-        #     go!: /Trip/TripStartPoint
-
-#============================================= Запрос телефона и окончание формирования путевки =============================================#
-
-
-# theme: /Phone
-#     state: Ask 
-#         a: Для передачи заявки менеджеру, мне нужен Ваш номер телефона в формате 79000000000.
-
-#         state: Get
-#             q: $phone
-#             go!: /Phone/Confirm
-
-#         state: Wrong
-#             q: *
-#             a: О-оу. ошибка в формате набора номера. Проверьте.
-#             go!: /Phone/Ask
-
-
-#     state: Confirm
-#         script:
-#             $temp.phone = $parseTree._phone || $client.phone;
-
-#         a: Ваш номер {{ $temp.phone }}, верно?
-
-#         script:
-#             $session.probablyPhone = $temp.phone;
-
-#         buttons:
-#             "Да"
-#             "Нет"
-
-#         state: Yes
-#             q: (да/верно)
-#             script:
-#                 $client.phone = $session.probablyPhone;
-#                 delete $session.probablyPhone;
-#             go!: /SendMail/Mail
-            
-
-#         state: No
-#             q: (нет/не [верно])
-#             go!: /Phone/Ask            
-            
+        state: No
+            q: * заполнить заново *
+            script:
+                # delete $session.StartPoint;
+                # delete $session.departureCity;
+                # delete $session.departureDate;
+                # delete $session.arrivalPointForCity;
+                # delete $session.arrivalPointForCountry;
+                # delete $session.returnDate;
+                # delete $session.people;
+                # delete $session.children;
+                # delete $session.bablo;
+                # delete $session.stars;
+                # delete $session.comments;
+            # go!: /Trip/TripStartPoint
 
 #============================================= Отправка формы на почту менеджеру =============================================#            
         
 theme: /SendMail
     state: Mail
-#ПЕРЕМЕСТИТЬ answer - в temp!    
+        a: Заявка сформирована, отправляю в компанию Just Tour...
         script:
+#ЗАЧЕМ тут var?? ПЕРЕМЕСТИТЬ в temp?
             var ClientData = "";
             var Subject = "Заявка от клиента " + $client.name;
             ClientData += " Имя: " + $client.name + "<br>";
@@ -921,6 +675,8 @@ theme: /SendMail
                 password: "rRk8AEUQ6ZMAJaZ8BGEu"
             });
         if: ($session.result.status == "OK")
-            a: Фсе получилось
+            a: Заявка отправлена. Менеджер Just Tour свяжется с вами в ближайшее время
+            go!: /End
         else:
-            a: Письмо не ушло :((
+            a: Упс. Ваша заявка не отправилась.Для подбора тура обратитесь в JustTour по телефону. Продиктовать?
+#ДОБИТЬ СЦЕНАРИЙ ПО СХЕМЕ
