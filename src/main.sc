@@ -126,7 +126,7 @@ theme: /Menu
             a: {{$session.place.name}}? Интересная идея! Сейчас узнаю какая там погода. Какую дату посмотреть?
             # дата названа - записываем дату и идем в прогноз
             state: Date
-                q: @duckling.date
+                q: * @duckling.date *
                 script: $session.date = $parseTree.value;
                 go!: /Weather/Begin
             # интент отказ - предлаагаем варианты и идем в меню
@@ -165,7 +165,6 @@ theme: /Weather
             a: Назовите город или страну
         #если назвали город - записали город и идем на запрос даты    
         state: City    
-# НЕ ЛОВИТ а в самаре ... разобраться, попробовать через @pymorphy.geox вытаскивать?
             q: * $City *
             script:
                 $session.place = {name: $parseTree._City.name, namesc: "", type: "city"}
@@ -173,7 +172,6 @@ theme: /Weather
             go!: /Weather/Step2
         #если назвали страну - записали страну и идем на начало чтоб спросить про город
         state: Contry
-# НЕ ЛОВИТ а в Турции ... разобраться, попробовать через @pymorphy.geox вытаскивать?
             q: * $Country *
             script:
                 $session.place = {name: $parseTree._Country.name, namesc: $parseTree._Country.namesc, type: "стране"}
@@ -222,7 +220,7 @@ theme: /Weather
             a: На какую дату смотрим прогноз погоды?
         #названа дата - сохраняем ее и идем на Шаг3 погоды
         state: Date
-            q: @duckling.date            
+            q: * @duckling.date *
             script: $session.date = $parseTree.value
             go!: /Weather/Step3
         #отказ - идем на выход
@@ -340,9 +338,8 @@ theme: /Weather
             "Нет, не планирую"
         # введен город/страна - запомнили их и идем на старт погоды
         state: Location
-            q: (* $City *)
-            q: (* $Country *)
-# НЕ ЛОВИТ а в самаре ... разобраться, попробовать через @pymorphy.geox вытаскивать?
+            q: * $City *
+            q: * $Country *
             script: 
                 if ($parseTree.City) {
                     $session.place = {name: $parseTree._City.name, namesc: "", type: "city"};

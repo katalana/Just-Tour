@@ -35,7 +35,7 @@
     "priority" : 0
   } ],
   "entities" : [ ],
-  "enabledSystemEntities" : [ "mystem.geo", "pymorphy.geox", "duckling.number", "duckling.time", "duckling.date", "duckling.phone-number" ],
+  "enabledSystemEntities" : [ "mystem.geo", "duckling.number", "duckling.time", "duckling.date", "duckling.phone-number" ],
   "spellerDictionary" : [ ],
   "systemEntities" : [ {
     "name" : "mystem.geo",
@@ -78,7 +78,7 @@
     "enabled" : false
   }, {
     "name" : "pymorphy.geox",
-    "enabled" : true
+    "enabled" : false
   }, {
     "name" : "pymorphy.orgn",
     "enabled" : false
