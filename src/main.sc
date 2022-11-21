@@ -68,7 +68,7 @@ theme: /Name
         state: GetStrangeName
             q: * 
             script: $session.tempName = $request.query;
-            a: {{$temp.Name}}! Какое необычное имя. Вы не ошиблись? Я могу вас так называть?
+            a: {{$session.tempName}}! Какое необычное имя. Вы не ошиблись? Я могу вас так называть?
             buttons:
                 "Да"
                 "Нет"
