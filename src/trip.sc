@@ -59,7 +59,7 @@ theme: /Trip
         #другое непонятное слово - уточняем имя это или нет
         state: GetStrangeName
             q: * 
-            script: $temp.Name = $request.query;
+            script: $session.tempName = $request.query;
             a: {{$temp.Name}}! Какое необычное имя. Вы не ошиблись? Я могу вас так называть?
             buttons:
                 "Да"
@@ -67,7 +67,7 @@ theme: /Trip
             #если имя - сохраняем его и идем на Шаг2 заявки
             state: Yes
                 q: (да/* верно *)
-                script: $client.name = $temp.Name;
+                script: $client.name = $session.tempName;
                 a: {{$client.name}}, приятно познакомиться!
                 go!: /Trip/Step2
             #если не имя - пробуем с начала

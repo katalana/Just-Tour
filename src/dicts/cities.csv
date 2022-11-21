@@ -2631,7 +2631,7 @@
 2631;Ван;{"name":"Ван","lat":38.49457,"lon":43.38323,"country":"TR","timezone":"Europe/Istanbul","population":371713,"capital":"false","continent":"Europe"}
 2632;Валанс;{"name":"Валанс","lat":44.93333,"lon":4.9,"country":"FR","timezone":"Europe/Paris","population":63864 ,"capital":"false" ,"continent":"Europe"}
 2633;Труа;{"name":"Труа","lat":48.3,"lon":4.08333,"country":"FR","timezone":"Europe/Paris","population":60785,"capital":"false","continent":"Europe"}
-2634;Тур;{"name":"Тур","lat":47.38333,"lon":0.68333,"country":"FR","timezone":"Europe/Paris","population":141621,"capital":"false","continent":"Europe"}
+
 2635;Туркуэн;{"name":"Туркуэн","lat":50.72391,"lon":3.16117,"country":"FR","timezone":"Europe/Paris","population":91574,"capital":"false","continent":"Europe"}
 2636;Тулуза;{"name":"Тулуза","lat":43.60426,"lon":1.44367,"country":"FR","timezone":"Europe/Paris","population":433055,"capital":"false","continent":"Europe"}
 2637;Тулон;{"name":"Тулон","lat":43.11667,"lon":5.93333,"country":"FR","timezone":"Europe/Paris","population":168701,"capital":"false","continent":"Europe"}
