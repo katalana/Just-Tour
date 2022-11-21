@@ -5,7 +5,7 @@ function getLocation (answer){
         $jsapi.context().session.coordinates = {lat: answer._City.lat, lon: answer._City.lon};
     }
     else {
-        $jsapi.context().session.place = {name: answer._Country.name, namesc: ranswer._Country.namesc, type: ""};
+        $jsapi.context().session.place = {name: answer._Country.name, namesc: answer._Country.namesc, type: ""};
         $jsapi.context().session.coordinates = {lat: answer._Country.lat, lon: answer._Country.lon};
     }
 }
@@ -66,3 +66,35 @@ function plus(num) {
 	var number = parseInt(num);
 	return (number + 1);
 }	
+
+//функция формирует заявку из сессионных переменных и отправляет её на почту
+function email () {
+    var subject = "Заявка от клиента " + $jsapi.context().client.name;
+    var form = "";
+    form += " Имя: " + $jsapi.context().client.name + "<br>";
+    form += " Телефон: " + $jsapi.context().client.phone + "<br>";
+    if ($jsapi.context().session.place) form += " Пункт назначения: " + $jsapi.context().session.place.name + "<br>";
+        else form += " Пункт назначения: не определен"  + "<br>";
+    if ($jsapi.context().session.date) form += " Дата начала поездки: " + $jsapi.context().session.date.day + "." + $jsapi.context().session.date.month + "." + $jsapi.context().session.date.year + "<br>";
+        else form += " Дата начала поездки: " + $jsapi.context().session.noDate + "<br>";
+    form += " Длительность поездки: " + $jsapi.context().session.duration + "<br>";
+    form += " Количество людей: " + $jsapi.context().session.people + "<br>";
+    if ($jsapi.context().session.children) form += " Количество детей: " + $jsapi.context().session.children + "<br>";
+        else form += " Количество детей: не определено"  + "<br>";
+    form += " Бюджет на одного взрослого: " + $jsapi.context().session.budget + "<br>";
+    form += " Минимальная звездность отеля: " + $jsapi.context().session.stars + "<br>";
+    form += " Комментарий для Менеджера: " + $jsapi.context().session.comment + "<br>";
+            
+    var answer = {}    
+    answer = $mail.send({
+        from: "katalana@mail.ru",
+        to: ["katalana@mail.ru"],
+        subject: subject,
+        content: form,
+        smtpHost: "smtp.mail.ru",
+        smtpPort: "465",
+        user: "katalana@mail.ru",
+        password: "rRk8AEUQ6ZMAJaZ8BGEu"
+    });
+    return (answer);
+}

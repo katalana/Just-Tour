@@ -96,7 +96,7 @@ theme: /Menu
         state: WhatElse
             q: * [что] еще [умеешь]*
             q: * другое *
-            a: Я пока больше ничего не умею. Только рассказывать о погоде и оформлять заявку на тур.
+            a: Я больше ничего не умею. Только рассказывать о погоде и оформлять заявку на тур.
             go!: /Menu/Choose
         #интент Отказ - идем на выход
         state: Deny
@@ -109,11 +109,11 @@ theme: /Menu
         #интент Оформить заявку
         state: Tour
             q: ( * тур/путешествие/путевк * )
-            q: ( оформить/заявку )
+            q: ( (* заявк* *) / (* оформ* *) )
             a: В какой город или страну хотите поехать?
             buttons:
                 "Нужна консультация"
-                "Пока не решил куда"
+                "Еще не решил куда"
             #назван город или страна
             state: CityOrCountry
                 q:  * $City * 
@@ -121,12 +121,13 @@ theme: /Menu
                 #запоминаем город или страну и их координаты и идем на начало Заявки
                 script: getLocation ($parseTree)  
                 a: Записала, {{$session.place.name}}
-                # go!: /Trip/Begin
+                go!: /Trip/Begin
             #не решил или нужна консультация - идем на начало Заявки
             state: NoSure
-                q: * (потом/выбираю/консультаци) *
-                q: (*  (не знаю)/(не решил) *)
-                q: (* не выбрал/не определил *)
+                q: * потом *
+                q: * консультаци* *
+                q: ( (* не решил* *)/(*  не зна* *) )
+                q: (* (не выбрал)/(не определил) *)
                 a: Не проблема. Заполним заявку, а менеджер поможет Вам выбрать направление
                 go!: /Trip/Begin
             #все остальные ответы    
@@ -321,8 +322,8 @@ theme: /Weather
             $session.temperature = $temp.weather.temp;
         #если ответ пришел - выдаем его
         if: $temp.weather
-            #формируем ответ про день/дату, на который получен прогноз            
             script: 
+                #формируем часть ответа про дату, на который получен прогноз
                 $temp.answerDate = "";
                 $temp.answerDate += $session.date.day + "." + $session.date.month; 
                 #формируем часть ответа про место
@@ -383,14 +384,13 @@ theme: /Weather
             #если да - идем в раздел Заявка
             state: Yes
                 q: * $comYes *
-                q: (да/верно)
-                q: * давайте *
-                go!: Trip/Begin
+                q: (* давай/верно *)
+                q: (* оформи/заявк *)
+                go!: /Trip/Begin
             #если нет - идем на шаг6 погоды    
             state: Deny
                 q: * $comNo *
-                q: * (не верно/неверно) *
-                q: * не планирую *
+                q: * (не надо/не хочу) *
                 go!: /Weather/Step6        
                     
     state: Step6                
@@ -542,8 +542,8 @@ theme:/Trip
         #имя совпало с переменной из списка - сохраняем имя, идем на Шаг2 заявки
         state: GetPhone
             q: * $phone *
-            script: client.phone = $parseTree._phone
-            a: {{client.phone}} внесла в заявку
+            script: $client.phone = $parseTree._phone
+            a: {{$client.phone}} внесла в заявку
             go!: /Trip/Step3
         #не хочу знакомиться - извиняемся и идем на выход
         state: NoPhone
@@ -560,17 +560,17 @@ theme:/Trip
         script: $session.tripStep = "/Trip/Step3"
         a: Назовите дату начала поездки. Можно примерно
         buttons:
-            "Пока не знаю"
+            "Еще не знаю"
         #введена дата - сохраняем ее
         state: Date
             q: * @duckling.date *
             script: $session.date = $parseTree.value;
-            go!: /Trip/Step3
+            go!: /Trip/Step4
         #введено что-то иное - сохраняем это в другой переменной
         state: NoDate
             q: *
             script: $session.noDate = $request.query;
-            go!: /Trip/Step3
+            go!: /Trip/Step4
     
     #запрашиваем длительность поездки
     state: Step4 
@@ -582,7 +582,7 @@ theme:/Trip
             "14-20 дней"
             "21-29 дней"
             "Свыше месяца"
-            "Пока не знаю"
+            "Еще не знаю"
         #подойдет любой ответ - записали его
         state: Answer
             q: *
@@ -592,12 +592,12 @@ theme:/Trip
     #запрашиваем количество участников поездки
     state: Step5 
         script: $session.tripStep = "/Trip/Step5"
-        a: Сколько всего человек будет в поездке включая детей
+        a: Сколько всего человек будет в поездке включая детей?
         buttons:
-            "Пока не знаю"
+            "Еще не знаю"
         # если введено число - записали его и пошли спросить про детей
         state: Number
-            q: * @ducling.number *
+            q: * @duckling.number * || fromState = "/Trip/Step5", onlyThisState = true
             script: $session.people = $request.query;
             go!: /Trip/Step5/Children
         # спросили про детей 
@@ -624,7 +624,7 @@ theme:/Trip
             "$700-$1500"        
             "$1500-$3000"
             "свыше $3000"
-            "Пока не знаю"
+            "Еще не знаю"
         #подойдет любой ответ - записали его
         state: Answer
             q: *
@@ -640,7 +640,7 @@ theme:/Trip
             "3*"        
             "4*"        
             "5*"
-            "Пока не знаю"
+            "Еще не знаю"
         #подойдет любой ответ - записали его
         state: Answer
             q: *
@@ -662,33 +662,8 @@ theme:/Trip
 theme: /SendMail
     state: Mail
         a: Заявка сформирована, отправляю в компанию Just Tour...
-        #формируем заявку
-        script:
-            $temp.form = "";
-            $temp.subject = "Заявка от клиента " + $client.name;
-            $temp.form += " Имя: " + $client.name + "<br>";
-            $temp.form += " Телефон: " + $client.phone + "<br>";
-            if ($session.place) $temp.form += " Пункт назначения: " + $session.place.name + "<br>";
-                else $temp.form += " Пункт назначения: не определен"  + "<br>";
-            if ($session.date) $temp.form += " Дата начала поездки: " + $session.date.day + "." + $session.date.month + "." + $session.date.year;
-                else $temp.form += " Дата начала поездки: " + $session.noDate + "<br>";
-            $temp.form += " Длительность поездки: " + $client.duration + "<br>";
-            $temp.form += " Количество людей: " + $session.people + "<br>";
-            $temp.form += " Количество детей: " + $session.children + "<br>";
-            $temp.form += " Бюджет на одного взрослого: " + $session.budget + "<br>";
-            $temp.form += " Минимальная звездность отеля: " + $session.stars + "<br>";
-            $temp.form += " Комментарий для Менеджера: " + $session.comment + "<br>";
-            #отправляем на почту, получаем результат
-            $session.result = $mail.send({
-                from: "katalana@mail.ru",
-                to: ["katalana@mail.ru"],
-                subject: Subject,
-                content: $temp.form,
-                smtpHost: "smtp.mail.ru",
-                smtpPort: "465",
-                user: "katalana@mail.ru",
-                password: "rRk8AEUQ6ZMAJaZ8BGEu"
-            });
+        #формируем и отправляем заявку
+        script: $session.result = email ()
         #если результат ОК - сообщаем об этом
         if: ($session.result.status == "OK")
             a: Заявка отправлена. Менеджер Just Tour свяжется с вами в ближайшее время

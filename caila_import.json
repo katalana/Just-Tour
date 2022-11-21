@@ -35,7 +35,7 @@
     "priority" : 0
   } ],
   "entities" : [ ],
-  "enabledSystemEntities" : [ "duckling.number", "duckling.time", "duckling.date" ],
+  "enabledSystemEntities" : [ "duckling.number", "duckling.date" ],
   "spellerDictionary" : [ ],
   "systemEntities" : [ {
     "name" : "mystem.geo",
@@ -101,7 +101,7 @@
   }, {
     "name" : "duckling.time",
     "version" : "v2",
-    "enabled" : true
+    "enabled" : false
   }, {
     "name" : "duckling.date",
     "version" : "v2",
