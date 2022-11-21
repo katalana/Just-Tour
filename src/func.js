@@ -1,3 +1,16 @@
+//функция извлекает из ответа название города или страны и их координаты и сохраняет в сессионные переменные
+function getLocation (answer){
+    if (answer.City) {
+        $jsapi.context().session.place = {name: answer._City.name, namesc: "", type: "city"};
+        $jsapi.context().session.coordinates = {lat: answer._City.lat, lon: answer._City.lon};
+    }
+    else {
+        $jsapi.context().session.place = {name: answer._Country.name, namesc: ranswer._Country.namesc, type: ""};
+        $jsapi.context().session.coordinates = {lat: answer._Country.lat, lon: answer._Country.lon};
+    }
+}
+
+//функция запрашивает прогноз погоды и возвращает параметры прогноза либо ответ о неудаче
 function getWeather(lat, lon, day) {
 	var response = $http.get("https://api.weatherbit.io/v2.0/forecast/daily?lat=${lat}&lon=${lon}&lang=${lang}&key=${key}&days=16", {
             timeout: 10000,
@@ -9,22 +22,18 @@ function getWeather(lat, lon, day) {
                 days: toPrettyString(day)
             }
         });
-
-	if (!response.isOk || !response.data) {
-		return false;
-	}
+	if (!response.isOk || !response.data) return false
 
 	var weather = {};
-
 	weather.temp = response.data.data[day].temp;
 	weather.wind = response.data.data[day].wind_spd;
 	weather.gust = response.data.data[day].wind_gust_spd;
 	weather.descript = response.data.data[day].weather.description;
 
 	return weather;
-	
 }
 
+//функция запрашивает исторические данны о погоде и возвращает параметры прогноза либо ответ о неудаче
 function getHistoricalWeather(lat, lon, start_date, end_date) {
 	var response = $http.get("https://api.weatherbit.io/v2.0/history/daily?lat=${lat}&lon=${lon}&start_date=${start_date}&end_date=${end_date}&key=${key}", {
             timeout: 10000,
@@ -36,28 +45,23 @@ function getHistoricalWeather(lat, lon, start_date, end_date) {
                 end_date:  toPrettyString(end_date)
             }
         });
-
-	if (!response.isOk || !response.data) {
-//		return false;
-        return response;		
-	}
-
+	if (!response.isOk || !response.data) return false
+        
 	var weather = {};
-
 	weather.temp = response.data.data[0].temp;
 	weather.wind = response.data.data[0].wind_spd;
 	weather.gust = response.data.data[0].wind_gust_spd;
 
 	return weather;
-	
 }
 
-
+//функция отнимает один из числа в формате строки
 function minus(num) {
 	var number = parseInt(num);
 	return (number - 1);
 }	
 
+//функция добавляет один к числу в формате строки
 function plus(num) {
 	var number = parseInt(num);
 	return (number + 1);
