@@ -8,6 +8,9 @@ require: dateTime/moment.min.js
 # библиотека локальных функций
 require: func.js
 
+# файл сценария с заполнением заявки на тур
+require: trip.sc
+
 # файл сценария с паттернами локальных переменных
 require: localPatterns.sc  
 
@@ -25,3 +28,4 @@ require: dicts/countries.csv
 require: dicts/names.csv
     name = names
     var = names
+    
