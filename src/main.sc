@@ -85,14 +85,13 @@ theme: /Menu
         a: Я расказываю о погоде в разных городах мира и могу оформить заявку на подбор тура. 
         go!: /Menu/Choose
 
-    #спрашиваем что выбрает
+    #предложили выбор; ответ про погоду поймает входной интент Погоды
     state: Choose
         a: Что Вас интересует?
-# ДОБАВИТЬ ИНТЕНТЫ ПЕРЕДЕЛАТЬ КНОПКИ НА ЧЕТКИЕ ПЕРЕХОДЫ        
-        #переход по кнопкам ведет в нужные стейты
         buttons:
             "Рассказать о погоде"
             "Оформить заявку на тур"
+        
         #интент Что еще умеешь - идем в начало выбора       
         state: WhatElse
             q: * [что] еще [умеешь]*
@@ -106,12 +105,48 @@ theme: /Menu
             q: * [это] не то *
             a: Как скажете.
             go!: /Exit
-#УПУЩЕНА ВЕРТКА СЦЕНАРИЯ, ГДЕ БОТ СПРАШИВАЕТ КУДА ХОТИТЕ ОТПРАВИТЬСЯ!!!!!
-        
-        #интент город/страна 
-        state: Location
-            q: * $City *
-            q: * $Country *
+            
+        #интент Оформить заявку
+        state: Tour
+            q: ( * тур/путешествие/путевк * )
+            q: ( оформить/заявку )
+            a: В какой город или страну хотите поехать?
+            buttons:
+                "Нужна консультация"
+                "Пока не решил куда"
+            #назван город или страна
+            state: CityOrCountry
+                q:  * $City * 
+                q:  * $Country * 
+                #запоминаем город или страну и их координаты и идем на начало Заявки
+                script: 
+                    if ($parseTree.City) {
+                        $session.place = {name: $parseTree._City.name, namesc: "", type: "city"};
+                        $session.coordinates = {lat: $parseTree._City.lat, lon: $parseTree._City.lon};
+                    }
+                    else {
+                        $session.place = {name: $parseTree._Country.name, namesc: $parseTree._Country.namesc, type: ""};
+                        $session.coordinates = {lat: $parseTree._Country.lat, lon: $parseTree._Country.lon};
+                    }    
+                a: Записала, {{$session.place.name}}
+                # go!: /Trip/Begin
+            #не решил или нужна консультация - идем на начало Заявки
+            state: NoSure
+                q: * (потом/выбираю/консультаци) *
+                q: (*  (не знаю)/(не решил) *)
+                q: (* не выбрал/не определил *)
+                a: Не проблема. Заполним заявку, а менеджер поможет Вам выбрать направление
+                go!: /Trip/Begin
+            #все остальные ответы    
+            state: NoMatch
+                event: noMatch
+                a: Я Вас не поняла. Давайте заполним заявку, а направление выберете потом
+                go!: /Trip/Begin    
+                
+        #интент город/страна, в него можно попасть только из стейта /Menu/Choose
+        state: Location 
+            q: * $City * || fromState = "/Menu/Choose", onlyThisState = true
+            q: * $Country * || fromState = "/Menu/Choose", onlyThisState = true
             #запоминаем город или страну и их координаты
             script: 
                 if ($parseTree.City) {
@@ -395,8 +430,8 @@ theme: /Weather
             "Не нужен прогноз"
         #другое место очищаем место и дату, идем на начало прогноза
         state: ChangePlaceDate
-            q: * другое место и дата *
-            q: [~другой] (~место) (~дата)
+            q: * (другое/другом место/месте) *
+            q: [~другой] (~место) [~дата]
             q: * $comYes *
             q: (да/давайте)
             script: 
@@ -411,179 +446,178 @@ theme: /Weather
             q: * не нуж* *
             a: Как скажете!
             go!: /Exit
-        #названа дата - запомнили её и идем на шаг3 прогноза
 
 #============================================= ОФОРМЛЕНИЕ ПУТЕВКИ =============================================#
 
 theme:/Trip
     
-    state: begin
+    state: Begin
     #если заявку начинали оформлять то идем туда где остановились, иначе идем проверять/спрашивать имя
-    if: $session.tripStep
-        script: $reactions.transition ( {value:$session.tripStep, deferred: false} );
-    else: 
-        a: Для оформления заявки я задам вам несколько вопросов. Обязательными будут только Ваше имя и телефон
-        if: $client.name
-            go!: /Trip/CheckName
-        else:
-            go!: /Trip/AskName
-    
-    #если имя уже есть - проверяем актуально ли оно
-    state: CheckName
-        a: Ваше имя {{$client.name}}, верно?
-        buttons:
-            "Да"
-            "Нет"
-        #если да - идем на Шаг2 заявки   
-        state: Yes
-            q: (да/* верно *)
-            a: Внесла в заявку
-            go!: /Trip/Step2
-        #если нет - идем спрашивать имя
-        state: No
-            q: * $comNo *
-            q: * (не верно/неверно) *
-            q: *[~другой]/[~иначе] *
-            script: delete $client.name
-            go!: /Trip/AskName
-        #если отказ знакомиться - извиняемся и идем на выход
-        state: Deny
-            q: * отказ *
-            q: (* (не хочу)/(не надо) *)
-            q: * не буду *
-            a: К сожалению, без имени я не могу принять заявку на тур
-            go!: /Exit
-        #если нет внятного ответа - возвращаемся к вопросу
-        state: CatchAll || noContext = true 
-            event: noMatch
-            a: Пожалуйста, ответьте да или нет:
-            go!: /Trip/CheckName
-    
-    #если имени нет - запрашиваем его
-    state: AskName || modal = true
-        a: Пожалуйста, назовите Ваше имя
-        #имя совпало с переменной из списка - сохраняем имя, идем на Шаг2 заявки
-        state: GetName
-            q: * $Name *
-            script: $client.name = $parseTree._Name.name;
-            a: {{$client.name}}, приятно познакомиться!    
-            go!: /Trip/Step2
-        #не хочу знакомиться - извиняемся и идем на выход
-        state: NoName
-            q: (* не назову */* не хочу */* не буду */отказ)
-            a: К сожалению, без имени я не могу принять заявку на тур
-            go!: /Exit
-        #другое непонятное слово - уточняем имя это или нет
-        state: GetStrangeName
-            q: * 
-            script: $temp.Name = $request.query;
-            a: {{$temp.Name}}! Какое необычное имя. Вы не ошиблись? Я могу вас так называть?
-            buttons:
-                "Да"
-                "Нет"
-            #если имя - сохраняем его и идем на Шаг2 заявки
-            state: Yes
-                q: (да/* верно *)
-                script: $client.name = $temp.Name;
-                a: {{$client.name}}, приятно познакомиться!
-                go!: /Trip/Step2
-            #если не имя - пробуем с начала
-            state: No
-                q: (нет/* не верно */ошиб* /* не може* *)
-                a: Попробуем еще раз.
+        if: $session.tripStep
+            script: $reactions.transition ( {value:$session.tripStep, deferred: false} );
+        else: 
+            a: Для оформления заявки я задам вам несколько вопросов. Обязательными будут только Ваше имя и телефон
+            if: $client.name
+                go!: /Trip/CheckName
+            else:
                 go!: /Trip/AskName
-
-    #если телефон есть, идем его проверять, иначе - идем его спрашивать
-    state: Step2
-        script: $session.tripStep = "/Trip/Step2"
-        if: $client.phone
-            go!: /Trip/CheckPhone
-        else:
-            go!: /Trip/AskPhone
-        
-    #проверяем актуален ли телефон
-    state: CheckPhone
-        a: Ваш телефон {{$client.phone}}, верно?
-        buttons:
-            "Да"
-            "Нет"
-        #если да - идем на Шаг3 заявки 
-        state: Yes
-            q: (да/* верно *)
-            a: Внесла в заявку
-            go!: /Trip/Step3
-        #если нет - идем спрашивать телефон
-        state: No
-            q: * $comNo *
-            q: * (не верно/неверно) *
-            q: *[~другой]/[~иначе] *
-            script: delete $client.phone
-            go!: /Trip/AskPhone
-        #если отказ - извиняемся и идем на выход
-        state: Deny
-            q: * отказ *
-            q: (* (не хочу)/(не надо) *)
-            q: * не буду *
-            a: К сожалению, без номера телефона я не могу принять заявку
-            go!: /Exit
-        #если нет внятного ответа - возвращаемся к вопросу
-        state: CatchAll || noContext = true 
-            event: noMatch
-            a: Пожалуйста, ответьте да или нет:
-            go!: /Trip/CheckPhone
-           
-    #если телефона нет - запрашиваем его
-    state: AskPhone
-        a: Пожалуйста, назовите номер Вашего телефона
-        #имя совпало с переменной из списка - сохраняем имя, идем на Шаг2 заявки
-        state: GetPhone
-            q: * $phone *
-            script: client.phone = $parseTree._phone
-            a: {{client.phone}} внесла в заявку
-            go!: /Trip/Step3
-        #не хочу знакомиться - извиняемся и идем на выход
-        state: NoPhone
-            q: (* не назову */* не хочу */* не буду */отказ)
-            a: К сожалению, без номера телефона я не могу принять заявку
-            go!: /Exit
-        #иное - ругаемся и идем на начало
-        state: NoMatch
-            q: *
-            a: Непохоже на номер телефона. Давайте попробуем еще раз.
-            go!: /Trip/AskPhone
-    #запрашиваем дату   
-    state: Step3   
-        script: $session.tripStep = "/Trip/Step3"
-        a: Назовите дату начала поездки. Можно примерно
-        buttons:
-            "Пока не знаю"
-        #введена дата - сохраняем ее
-        state: Date
-            q: * @duckling.date *
-            script: $session.date = $parseTree.value;
-            go!: /Trip/Step3
-        #введено что-то иное - сохраняем это в другой переменной
-        state: NoDate
-            q: *
-            script: $session.noDate = $request.query;
-            go!: /Trip/Step3
     
-    #запрашиваем длительность поездки
-    state: Step4 
-        script: $session.tripStep = "/Trip/Step4"
-        a: Выберите длительность поездки
-        buttons:
-            "до 7 дней"
-            "7-13 дней"
-            "14-20 дней"
-            "21-29 дней"
-            "Свыше месяца"
-            "Пока не знаю"
+#     #если имя уже есть - проверяем актуально ли оно
+#     state: CheckName
+#         a: Ваше имя {{$client.name}}, верно?
+#         buttons:
+#             "Да"
+#             "Нет"
+#         #если да - идем на Шаг2 заявки   
+#         state: Yes
+#             q: (да/* верно *)
+#             a: Внесла в заявку
+#             go!: /Trip/Step2
+#         #если нет - идем спрашивать имя
+#         state: No
+#             q: * $comNo *
+#             q: * (не верно/неверно) *
+#             q: *[~другой]/[~иначе] *
+#             script: delete $client.name
+#             go!: /Trip/AskName
+#         #если отказ знакомиться - извиняемся и идем на выход
+#         state: Deny
+#             q: * отказ *
+#             q: (* (не хочу)/(не надо) *)
+#             q: * не буду *
+#             a: К сожалению, без имени я не могу принять заявку на тур
+#             go!: /Exit
+#         #если нет внятного ответа - возвращаемся к вопросу
+#         state: CatchAll || noContext = true 
+#             event: noMatch
+#             a: Пожалуйста, ответьте да или нет:
+#             go!: /Trip/CheckName
+    
+#     #если имени нет - запрашиваем его
+#     state: AskName || modal = true
+#         a: Пожалуйста, назовите Ваше имя
+#         #имя совпало с переменной из списка - сохраняем имя, идем на Шаг2 заявки
+#         state: GetName
+#             q: * $Name *
+#             script: $client.name = $parseTree._Name.name;
+#             a: {{$client.name}}, приятно познакомиться!    
+#             go!: /Trip/Step2
+#         #не хочу знакомиться - извиняемся и идем на выход
+#         state: NoName
+#             q: (* не назову */* не хочу */* не буду */отказ)
+#             a: К сожалению, без имени я не могу принять заявку на тур
+#             go!: /Exit
+#         #другое непонятное слово - уточняем имя это или нет
+#         state: GetStrangeName
+#             q: * 
+#             script: $temp.Name = $request.query;
+#             a: {{$temp.Name}}! Какое необычное имя. Вы не ошиблись? Я могу вас так называть?
+#             buttons:
+#                 "Да"
+#                 "Нет"
+#             #если имя - сохраняем его и идем на Шаг2 заявки
+#             state: Yes
+#                 q: (да/* верно *)
+#                 script: $client.name = $temp.Name;
+#                 a: {{$client.name}}, приятно познакомиться!
+#                 go!: /Trip/Step2
+#             #если не имя - пробуем с начала
+#             state: No
+#                 q: (нет/* не верно */ошиб* /* не може* *)
+#                 a: Попробуем еще раз.
+#                 go!: /Trip/AskName
+
+#     #если телефон есть, идем его проверять, иначе - идем его спрашивать
+#     state: Step2
+#         script: $session.tripStep = "/Trip/Step2"
+#         if: $client.phone
+#             go!: /Trip/CheckPhone
+#         else:
+#             go!: /Trip/AskPhone
         
-        state: Answer
-            q: *
-            script: $session.duration = $request.query;
-            go!: /Trip/Step5
+#     #проверяем актуален ли телефон
+#     state: CheckPhone
+#         a: Ваш телефон {{$client.phone}}, верно?
+#         buttons:
+#             "Да"
+#             "Нет"
+#         #если да - идем на Шаг3 заявки 
+#         state: Yes
+#             q: (да/* верно *)
+#             a: Внесла в заявку
+#             go!: /Trip/Step3
+#         #если нет - идем спрашивать телефон
+#         state: No
+#             q: * $comNo *
+#             q: * (не верно/неверно) *
+#             q: *[~другой]/[~иначе] *
+#             script: delete $client.phone
+#             go!: /Trip/AskPhone
+#         #если отказ - извиняемся и идем на выход
+#         state: Deny
+#             q: * отказ *
+#             q: (* (не хочу)/(не надо) *)
+#             q: * не буду *
+#             a: К сожалению, без номера телефона я не могу принять заявку
+#             go!: /Exit
+#         #если нет внятного ответа - возвращаемся к вопросу
+#         state: CatchAll || noContext = true 
+#             event: noMatch
+#             a: Пожалуйста, ответьте да или нет:
+#             go!: /Trip/CheckPhone
+           
+#     #если телефона нет - запрашиваем его
+#     state: AskPhone
+#         a: Пожалуйста, назовите номер Вашего телефона
+#         #имя совпало с переменной из списка - сохраняем имя, идем на Шаг2 заявки
+#         state: GetPhone
+#             q: * $phone *
+#             script: client.phone = $parseTree._phone
+#             a: {{client.phone}} внесла в заявку
+#             go!: /Trip/Step3
+#         #не хочу знакомиться - извиняемся и идем на выход
+#         state: NoPhone
+#             q: (* не назову */* не хочу */* не буду */отказ)
+#             a: К сожалению, без номера телефона я не могу принять заявку
+#             go!: /Exit
+#         #иное - ругаемся и идем на начало
+#         state: NoMatch
+#             q: *
+#             a: Непохоже на номер телефона. Давайте попробуем еще раз.
+#             go!: /Trip/AskPhone
+#     #запрашиваем дату   
+#     state: Step3   
+#         script: $session.tripStep = "/Trip/Step3"
+#         a: Назовите дату начала поездки. Можно примерно
+#         buttons:
+#             "Пока не знаю"
+#         #введена дата - сохраняем ее
+#         state: Date
+#             q: * @duckling.date *
+#             script: $session.date = $parseTree.value;
+#             go!: /Trip/Step3
+#         #введено что-то иное - сохраняем это в другой переменной
+#         state: NoDate
+#             q: *
+#             script: $session.noDate = $request.query;
+#             go!: /Trip/Step3
+    
+#     #запрашиваем длительность поездки
+#     state: Step4 
+#         script: $session.tripStep = "/Trip/Step4"
+#         a: Выберите длительность поездки
+#         buttons:
+#             "до 7 дней"
+#             "7-13 дней"
+#             "14-20 дней"
+#             "21-29 дней"
+#             "Свыше месяца"
+#             "Пока не знаю"
+        
+#         state: Answer
+#             q: *
+#             script: $session.duration = $request.query;
+#             go!: /Trip/Step5
             
             
             
@@ -596,7 +630,7 @@ theme:/Trip
 theme: /FullData               
     
     state: Screen
-#ОСТАВЛЯТЬ ЛИ ЭТУ ЧАСТЬ СКРИПТА??!  
+
 #answer - в temp!
         script:
             var answer = "";
