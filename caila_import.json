@@ -35,7 +35,7 @@
     "priority" : 0
   } ],
   "entities" : [ ],
-  "enabledSystemEntities" : [ "duckling.number", "duckling.time", "duckling.date", "duckling.phone-number" ],
+  "enabledSystemEntities" : [ "duckling.number", "duckling.time", "duckling.date" ],
   "spellerDictionary" : [ ],
   "systemEntities" : [ {
     "name" : "mystem.geo",
@@ -117,7 +117,7 @@
   }, {
     "name" : "duckling.phone-number",
     "version" : "v2",
-    "enabled" : true
+    "enabled" : false
   }, {
     "name" : "duckling.email",
     "version" : "v2",

@@ -388,10 +388,10 @@ theme: /Weather
                 go!: Trip/Begin
             #если нет - идем на шаг6 погоды    
             state: Deny
-            q: * $comNo *
-            q: * (не верно/неверно) *
-            q: * не планирую *
-            go!: /Weather/Step6        
+                q: * $comNo *
+                q: * (не верно/неверно) *
+                q: * не планирую *
+                go!: /Weather/Step6        
                     
     state: Step6                
         a: Давайте посмотрим климат в другом месте?
@@ -403,7 +403,7 @@ theme: /Weather
             q: * (другое/другом место/месте) *
             q: [~другой] (~место) [~дата]
             q: * $comYes *
-            q: (да/давайте)
+            q: (да/давай)
             script: 
                 delete $session.place, 
                 delete $session.coordinates, 
@@ -583,50 +583,132 @@ theme:/Trip
             "21-29 дней"
             "Свыше месяца"
             "Пока не знаю"
-        
+        #подойдет любой ответ - записали его
         state: Answer
             q: *
             script: $session.duration = $request.query;
             go!: /Trip/Step5
+
+    #запрашиваем количество участников поездки
+    state: Step5 
+        script: $session.tripStep = "/Trip/Step5"
+        a: Сколько всего человек будет в поездке включая детей
+        buttons:
+            "Пока не знаю"
+        # если введено число - записали его и пошли спросить про детей
+        state: Number
+            q: * @ducling.number *
+            script: $session.people = $request.query;
+            go!: /Trip/Step5/Children
+        # спросили про детей 
+        state: Children
+            a: Сколько из них детей младше 14 лет?
+            #подойдет любой ответ - записали его и идем на Шаг6 заявки
+            state: Answer
+                q: *
+                script: $session.children = $request.query;
+                go!: /Trip/Step6
+        # если любой другой ответ - записали его как есть и идем на Шаг6 заявки
+        state: Answer
+            event: noMatch || fromState = "/Trip/Step5", onlyThisState = true
+            script: $session.people = $request.query;
+            go!: /Trip/Step6
+            
+    #запрашиваем бюджет поездки
+    state: Step6 
+        script: $session.tripStep = "/Trip/Step6"
+        a: Какой примерно бюджет поездки из расчета на одного взрослого?
+        buttons:
+            "до $300"        
+            "$300-$700"        
+            "$700-$1500"        
+            "$1500-$3000"
+            "свыше $3000"
+            "Пока не знаю"
+        #подойдет любой ответ - записали его
+        state: Answer
+            q: *
+            script: $session.budget = $request.query;
+            go!: /Trip/Step7
+
+    #запрашиваем бюджет поездки
+    state: Step7 
+        script: $session.tripStep = "/Trip/Step7"
+        a: Какой хотите минимальный уровень звездности отеля?
+        buttons:
+            "не важно"        
+            "3*"        
+            "4*"        
+            "5*"
+            "Пока не знаю"
+        #подойдет любой ответ - записали его
+        state: Answer
+            q: *
+            script: $session.stars = $request.query;
+            go!: /Trip/Step8
+
+    #запрашиваем бюджет поездки
+    state: Step8 
+        script: $session.tripStep = "/Trip/Step8"
+        a: Что-то еще передать менеджеру? Может, какие-то пожелания?
+        #подойдет любой ответ - записали его
+        state: Answer
+            q: *
+            script: $session.comment = $request.query;
+            go!: /SendMail/Mail
 
 #============================================= Отправка формы на почту менеджеру =============================================#            
         
 theme: /SendMail
     state: Mail
         a: Заявка сформирована, отправляю в компанию Just Tour...
+        #формируем заявку
         script:
-#ЗАЧЕМ тут var?? ПЕРЕМЕСТИТЬ в temp!
-            var ClientData = "";
-            var Subject = "Заявка от клиента " + $client.name;
-            ClientData += " Имя: " + $client.name + "<br>";
-            ClientData += " Пункт отправления: " + $session.departureCity + "<br>";
-            ClientData += " Дата отправления: " + $session.departureDate.year + "." + $session.departureDate.month + "." + $session.departureDate.day + "<br>";
-            if ($session.arrivalPointForCity) {
-                ClientData += " Пункт назначения: " + $session.arrivalPointForCity + "<br>";
-            }
-            if ($session.arrivalPointForCountry) {
-                ClientData += " Пункт назначения: " + $session.arrivalPointForCountry + "<br>";
-            }
-            ClientData += " Дата возвращения: " + $session.returnDate.year + "." + $session.returnDate.month + "." + $session.returnDate.day + "<br>";
-            ClientData += " Количество людей: " + $session.people + "<br>";
-            ClientData += " Количество детей: " + $session.children + "<br>";
-            ClientData += " Бюджет: " + $session.bablo + "<br>";
-            ClientData += " Звезд у отеля: " + $session.stars + "<br>";
-            ClientData += " Комментарии для Менеджера: " + $session.comments + "<br>";
-            ClientData += " Телефон: " + $client.phone + "<br>";
+            $temp.form = "";
+            $temp.subject = "Заявка от клиента " + $client.name;
+            $temp.form += " Имя: " + $client.name + "<br>";
+            $temp.form += " Телефон: " + $client.phone + "<br>";
+            if ($session.place) $temp.form += " Пункт назначения: " + $session.place.name + "<br>";
+                else $temp.form += " Пункт назначения: не определен"  + "<br>";
+            if ($session.date) $temp.form += " Дата начала поездки: " + $session.date.day + "." + $session.date.month + "." + $session.date.year;
+                else $temp.form += " Дата начала поездки: " + $session.noDate + "<br>";
+            $temp.form += " Длительность поездки: " + $client.duration + "<br>";
+            $temp.form += " Количество людей: " + $session.people + "<br>";
+            $temp.form += " Количество детей: " + $session.children + "<br>";
+            $temp.form += " Бюджет на одного взрослого: " + $session.budget + "<br>";
+            $temp.form += " Минимальная звездность отеля: " + $session.stars + "<br>";
+            $temp.form += " Комментарий для Менеджера: " + $session.comment + "<br>";
+            #отправляем на почту, получаем результат
             $session.result = $mail.send({
                 from: "katalana@mail.ru",
                 to: ["katalana@mail.ru"],
                 subject: Subject,
-                content: ClientData,
+                content: $temp.form,
                 smtpHost: "smtp.mail.ru",
                 smtpPort: "465",
                 user: "katalana@mail.ru",
                 password: "rRk8AEUQ6ZMAJaZ8BGEu"
             });
+        #если результат ОК - сообщаем об этом
         if: ($session.result.status == "OK")
             a: Заявка отправлена. Менеджер Just Tour свяжется с вами в ближайшее время
             go!: /End
+        #если результат не ОК - тоже сообщаем об этом и идем ловить ответ
         else:
-            a: Упс. Ваша заявка не отправилась.Для подбора тура обратитесь в JustTour по телефону. Продиктовать?
-#ДОБИТЬ СЦЕНАРИЙ ПО СХЕМЕ
+            a: Упс. Ваша заявка не отправилась. Для подбора тура обратитесь в JustTour по телефону. Продиктовать?
+        #если согласие диктуем и спрашиваем надо ли повторить?
+        state: Phone
+            q: * $comYes *
+            q: (диктуй/диктовать)
+            q: * давай *
+            a: Телефон компании Just Tour 8-812-000-0000. Повторить?
+            #если надо повторить - идем на шаг назад
+            state: Yes
+                q: * $comYes *
+                q: (повтори/диктуй)
+                q: * давай *
+                go!: /SendMail/Mail/Phone
+        #во всех других случаях - идем на выход прощаться
+        state: NoMatch
+            event: noMatch
+            go!: /Exit
