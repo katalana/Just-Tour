@@ -3,10 +3,9 @@ require: requirements.sc
 #========================================= СТАРТ И ГЛОБАЛЬНЫЕ ИНТЕНТЫ ==================================================
 theme: /  
 
-    #старт диалога с интентов *start и приветствия
+    #старт диалога с интентов start и приветствия
     state: Welcome
         q!: *start                                  
-#ПРОПИСАТЬ ИНТЕНТ ПРИВЕТСТВИЯ В КАЙЛЕ!!
         q!: $hi *
         script: $session = {}      //обнулили переменные сессии
         #проверяем есть ли имя клиента, представляемся соотв.образом и идем в Меню или Имя
@@ -307,14 +306,10 @@ theme: /Weather
                 #формируем часть ответа про день/дату, на который получен прогноз
                 if ($session.interval == 0) $temp.answerDate = "сегодня";
                     else if ($session.interval == 1) $temp.answerDate = "завтра";
-                    else {
-                        $temp.answerDate = "";
-                        $temp.answerDate += $session.date.day + "." + $session.date.month + "." + $session.date.year;
-                    }
+                    else $temp.answerDate = $session.date.day + "." + $session.date.month + "." + $session.date.year;
                 #формируем часть ответа про место
-                $temp.answerPlace = "";
-                if ($session.place.type == "city") $temp.answerPlace += "городе " + $session.place.name
-                    else $temp.answerPlace += $session.place.namesc;
+                if ($session.place.type == "city") $temp.answerPlace = "городе " + $session.place.name
+                    else $temp.answerPlace = $session.place.namesc;
             #выдаем полный ответ про погоду
             a: Погода в {{$temp.answerPlace}} на {{$temp.answerDate}}: {{($temp.weather.descript).toLowerCase()}}, {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
             
@@ -329,23 +324,19 @@ theme: /Weather
     state: HistoryStep4
         script:
             #формируем для запроса входную и выходную дату в прошлом году
-            $session.historyDay1 = "";
-            $session.historyDay2 = "";
-            $session.historyDay1 += minus($jsapi.dateForZone("Europe/Moscow","yyyy")) + "-" + $session.date.month + "-" + $session.date.day;
-            $session.historyDay2 += minus($jsapi.dateForZone("Europe/Moscow","yyyy")) + "-" + $session.date.month + "-" + plus($session.date.day);
+            $temp.historyDay1 = minus($jsapi.dateForZone("Europe/Moscow","yyyy")) + "-" + $session.date.month + "-" + $session.date.day;
+            $temp.historyDay2 = minus($jsapi.dateForZone("Europe/Moscow","yyyy")) + "-" + $session.date.month + "-" + plus($session.date.day);
             #запрашиваем погоду  по API и сохраняем температуру
-            $temp.weather = getHistoricalWeather($session.coordinates.lat, $session.coordinates.lon, $session.historyDay1, $session.historyDay2);
+            $temp.weather = getHistoricalWeather($session.coordinates.lat, $session.coordinates.lon, $temp.historyDay1, $temp.historyDay2);
             $session.temperature = $temp.weather.temp;
         #если ответ пришел - выдаем его
         if: $temp.weather
             script: 
                 #формируем часть ответа про дату, на который получен прогноз
-                $temp.answerDate = "";
-                $temp.answerDate += $session.date.day + "." + $session.date.month; 
+                $temp.answerDate = $session.date.day + "." + $session.date.month; 
                 #формируем часть ответа про место
-                $temp.answerPlace = "";
-                if ($session.place.type == "city") $temp.answerPlace += "городе " + $session.place.name
-                    else $temp.answerPlace += $session.place.namesc;
+                if ($session.place.type == "city") $temp.answerPlace = "городе " + $session.place.name
+                    else $temp.answerPlace = $session.place.namesc;
             #выдаем полный ответ про погоду
             a: Погода в {{$temp.answerPlace}} в прошлом году на {{$temp.answerDate}} была: {{$temp.weather.temp}}°C. Ветер {{$temp.weather.wind}} м/с, порывы до {{$temp.weather.gust}} м/с.
         #если ответ не пришел - извиняемся и идем в главное меню
