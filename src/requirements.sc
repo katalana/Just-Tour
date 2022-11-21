@@ -11,6 +11,9 @@ require: func.js
 # файл сценария с заполнением заявки на тур
 require: trip.sc
 
+# файл сценария с заполнением заявки на тур
+require: weather.sc
+
 # файл сценария с паттернами локальных переменных
 require: localPatterns.sc  
 
