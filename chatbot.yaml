@@ -9,7 +9,7 @@ language: ru
 tests:
     include:
         - test.xml
-#пороги чувствительности интентов и сущностей
+#пороговые значения классификаторов
 sts:
     noMatchThreshold: 0.2
 caila:

@@ -32,3 +32,7 @@ require: dicts/names.csv
     name = names
     var = names
     
+# справочник названий месяцев
+require: dicts/months.yaml
+    name = months
+    var = months

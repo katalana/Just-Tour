@@ -78,7 +78,6 @@ theme: /Weather
         state: Date
             q: * @duckling.date *
             script: $session.date = $parseTree.value
-            a: {{toPrettyString($session.date)}}
             go!: /Weather/Step3
         #отказ - идем на выход
         state: Deny
@@ -105,7 +104,7 @@ theme: /Weather
             go!: /Weather/ForecastStep4
         #если нет - уточняем у пользователя что он хочет
         else: 
-            script: $temp.answerDate = $session.date.day + "." + $session.date.month; 
+            script: $temp.answerDate = $session.date.day + " " + months[$session.date.month].name; 
             if: ( $session.interval == 17 ||  $session.interval > 17 )
                 a: Не могу посмотреть прогноз больше, чем на 16 дней. Узнать какая погода была год назад {{$temp.answerDate}}?
             else:    
@@ -135,7 +134,7 @@ theme: /Weather
                 #формируем часть ответа про день/дату, на который получен прогноз
                 if ($session.interval == 0) $temp.answerDate = "сегодня";
                     else if ($session.interval == 1) $temp.answerDate = "завтра";
-                    else $temp.answerDate = $session.date.day + "." + $session.date.month + "." + $session.date.year;
+                    else $temp.answerDate = $session.date.day + " " + months[$session.date.month].name + " " + $session.date.year;
                 #формируем часть ответа про место
                 if ($session.place.type == "city") $temp.answerPlace = "городе " + $session.place.name
                     else $temp.answerPlace = $session.place.namesc;
@@ -162,7 +161,7 @@ theme: /Weather
         if: $temp.weather
             script: 
                 #формируем часть ответа про дату, на который получен прогноз
-                $temp.answerDate = $session.date.day + "." + $session.date.month; 
+                $temp.answerDate = $session.date.day + " " + months[$session.date.month].name; 
                 #формируем часть ответа про место
                 if ($session.place.type == "city") $temp.answerPlace = "городе " + $session.place.name
                     else $temp.answerPlace = $session.place.namesc;
