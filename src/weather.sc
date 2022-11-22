@@ -35,10 +35,8 @@ theme: /Weather
             q: * отказ*
             a: Как скажете.
             go!: /Exit
-        
-        
         #если название непонятное - переспрашиваем и идем на начало чтоб спросить страну или город
-        state: WeatherNoMatch
+        state: NoMatch
             event: noMatch
             a: Простите, я не знаю такого названия
             go!: /Weather/Begin
@@ -80,6 +78,7 @@ theme: /Weather
         state: Date
             q: * @duckling.date *
             script: $session.date = $parseTree.value
+            a: {{toPrettyString($session.date)}}
             go!: /Weather/Step3
         #отказ - идем на выход
         state: Deny
@@ -108,7 +107,7 @@ theme: /Weather
         else: 
             script: $temp.answerDate = $session.date.day + "." + $session.date.month; 
             if: ( $session.interval == 17 ||  $session.interval > 17 )
-                a: Не могу посмотреть прогноз больше, чем на 16 дней. Узнать какая погода была {{$temp.answerDate}} год назад?
+                a: Не могу посмотреть прогноз больше, чем на 16 дней. Узнать какая погода была год назад {{$temp.answerDate}}?
             else:    
                 a: Эта дата в прошлом. Узнать какая погода была {{$temp.answerDate}} в прошлом году?
         #если да - идем запрашивать исторические данные
