@@ -110,6 +110,7 @@ theme: /Menu
         #интент Отказ - идем на выход
         state: Deny
             intent: /Отказ
+            intent: /Нет
             a: Как скажете.
             go!: /Exit
             

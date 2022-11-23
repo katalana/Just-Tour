@@ -69,8 +69,8 @@ theme: /Weather
             go!: /Weather/AskCity
         #ответ нет - идем смотреть прогноз по стране
         state: No
-            q: (* нет/не знаю/не помню *)
-            q: * [нет] (не могу) *
+            intent: /Нет
+            q: ( (* не знаю *)/(* не помню *)/(* не могу* ) )
             a: Окей, смотрим прогноз в среднем по стране
             go!: /Weather/Step2
         #любой другой ответ - тоже идем смотреть прогноз по стране    
@@ -210,9 +210,8 @@ theme: /Weather
             go!: /Weather/Step3
         #ответ нет - идем на шаг6 погоды
         state: NoSure
-            q: * $comNo *
-            q: * (не верно/неверно) *
-            q: * не планирую *
+            intent: /Нет
+            q: * не планир* *
             go!: /Weather/Step6
         #если да - предлагаем оформить заявку (или продолжить её оформление)
         state: YesSure
@@ -235,6 +234,7 @@ theme: /Weather
                 go!: /Trip/Begin
             #если нет - идем на шаг6 погоды    
             state: Deny
+                intent: /Нет
                 intent: /Отказ
                 go!: /Weather/Step6        
                     
@@ -256,6 +256,7 @@ theme: /Weather
             go!: /Weather/Begin     
         #не нужен прогноз - идем на выход
         state: Deny
+            intent: /Нет
             intent: /Отказ
             a: Как скажете!
             go!: /Exit
