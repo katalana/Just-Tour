@@ -1,3 +1,4 @@
+# модуль для работы со слотфилингом
 require: slotfilling/slotFilling.sc
   module = sys.zb-common
 

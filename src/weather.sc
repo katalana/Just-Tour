@@ -2,10 +2,25 @@ theme: /Weather
     
     state: Begin
     #вопрос из любого места о погоде
-        q!: * (~погода) *
-        q!: * [хочу] узнать погоду *
-        q!: * (погодочку/погодку/погоду) *
-        #если уже есть город/страна
+        # q!: * (~погода) *
+        # q!: * (~прогноз) *
+        intent!: /Погода
+        #если в запросе найдена сущность Дата - сохраняем ее в сессионную переменную
+        if: $parseTree.Date
+            script: $session.date = $parseTree.Date[0].value
+        #если в запросе найдена сущность Место - сверяем со справочниками Города и Страны
+        if: $parseTree.Geo
+            script: 
+                $temp.geo = $parseTree.Geo[0].value;
+                if ( $nlp.matchPatterns($temp.geo, ["$City"]) )
+                    $session.geo = $nlp.matchPatterns($temp.geo, ["$City"]).parseTree
+                else 
+                    if ( $nlp.matchPatterns($temp.geo, ["$Country"]) )
+                        $session.geo = $nlp.matchPatterns($temp.geo, ["$Country"]).parseTree
+                    else $session.geo = ""
+                #если Место совпало с данными справочников - сохраняем название и координаты
+                if ( $session.geo ) getLocation ($session.geo)
+        #если город/страна уже записаны в сессионные переменные
         if: $session.place
             #если это город - идем на запрос даты
             if: ($session.place.type == "city")
