@@ -58,7 +58,7 @@ theme: /Trip
             go!: /Weather/Begin
         #другое непонятное слово - уточняем имя это или нет
         state: GetStrangeName
-            q: * 
+            event: noMatch
             script: $session.tempName = $request.query;
             a: {{$session.tempName}}! Какое необычное имя. Вы не ошиблись? Я могу вас так называть?
             buttons:
@@ -107,7 +107,7 @@ theme: /Trip
             a: К сожалению, без номера телефона я не могу принять заявку
             go!: /Exit
         #если нет внятного ответа - возвращаемся к вопросу
-        state: CatchAll || noContext = true 
+        state: NoMatch || noContext = true 
             event: noMatch
             a: Пожалуйста, ответьте да или нет:
             go!: /Trip/CheckPhone
@@ -128,7 +128,7 @@ theme: /Trip
             go!: /Exit
         #иное - ругаемся и идем на начало
         state: NoMatch
-            q: *
+            event: noMatch
             a: Непохоже на номер телефона. Давайте попробуем еще раз.
             go!: /Trip/AskPhone
     #запрашиваем дату   

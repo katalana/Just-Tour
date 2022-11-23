@@ -70,7 +70,7 @@ theme: /Name
             go!: /Weather/Begin
         #другое непонятное слово - уточняем имя это или нет
         state: GetStrangeName
-            q: * 
+            event: noMatch
             script: $session.tempName = $request.query;
             a: {{$session.tempName}}! Какое необычное имя. Вы не ошиблись? Я могу вас так называть?
             buttons:
