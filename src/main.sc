@@ -145,28 +145,28 @@ theme: /Menu
                 a: Я Вас не поняла. Давайте заполним заявку, а направление выберете потом
                 go!: /Trip/Begin    
                 
-        #интент город/страна, в него можно попасть только из стейта /Menu/Choose
-        state: Location 
-            q: * $City * || fromState = "/Menu/Choose", onlyThisState = true
-            q: * $Country * || fromState = "/Menu/Choose", onlyThisState = true
-            #запоминаем город или страну и их координаты
-            script: getLocation ($parseTree)
-            #запрашиваем дату
-            a: {{$session.place.name}}? Интересная идея! Сейчас узнаю какая там погода. Какую дату посмотреть?
-            #дата названа - записываем дату и идем в прогноз
-            state: Date
-                q: * @duckling.date *
-                script: $session.date = $parseTree.value;
-                go!: /Weather/Begin
-            #интент отказ - предлаагаем варианты и идем в меню
-            state: Deny
-                q: * (ничего/никакую) *
-                q: (*  (не хочу)/(не надо) *)
-                q: (* нет/не надо *)
-                a: Хотите, оформим заявку на подбор тура? Или посмотрим погоду в другом месте.
-                go!: /Menu/Choose
-            #ответ непонятен - ругаемся и идем в меню
-            state: NoMatch
-                event: noMatch
-                a: Я вас не поняла.
-                go!: /Menu/Choose
+    #интент город/страна
+    state: Location 
+        q: * $City * 
+        q: * $Country * 
+        #запоминаем город или страну и их координаты
+        script: getLocation ($parseTree)
+        #запрашиваем дату
+        a: {{$session.place.name}}? Интересная идея! Сейчас узнаю какая там погода. Какую дату посмотреть?
+        #дата названа - записываем дату и идем в прогноз
+        state: Date
+            q: * @duckling.date *
+            script: $session.date = $parseTree.value;
+            go!: /Weather/Begin
+        #интент отказ - предлаагаем варианты и идем в меню
+        state: Deny
+            q: * (ничего/никакую) *
+            q: (*  (не хочу)/(не надо) *)
+            q: (* нет/не надо *)
+            a: Хотите, оформим заявку на подбор тура? Или посмотрим погоду в другом месте.
+            go!: /Menu/Choose
+        #ответ непонятен - ругаемся и идем в меню
+        state: NoMatch
+            event: noMatch
+            a: Я вас не поняла.
+            go!: /Menu/Choose

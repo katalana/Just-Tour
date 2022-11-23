@@ -35,13 +35,38 @@
     },
     "patterns" : [ ],
     "priority" : 0
+  }, {
+    "path" : "/Погода",
+    "enabled" : true,
+    "shared" : false,
+    "phrases" : [ {
+      "text" : "Погода"
+    }, {
+      "text" : "Погоду"
+    } ],
+    "classificationRules" : {
+      "refs" : [ ]
+    },
+    "patterns" : [ ],
+    "slots" : [ {
+      "name" : "Geo",
+      "entity" : "mystem.geo",
+      "required" : false,
+      "prompts" : [ ]
+    }, {
+      "name" : "Date",
+      "entity" : "duckling.date",
+      "required" : false,
+      "prompts" : [ ]
+    } ],
+    "priority" : 0
   } ],
   "entities" : [ ],
-  "enabledSystemEntities" : [ "duckling.number", "duckling.date" ],
+  "enabledSystemEntities" : [ "mystem.geo", "duckling.number", "duckling.date" ],
   "spellerDictionary" : [ ],
   "systemEntities" : [ {
     "name" : "mystem.geo",
-    "enabled" : false
+    "enabled" : true
   }, {
     "name" : "mystem.persn",
     "enabled" : false
