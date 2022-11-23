@@ -44,9 +44,7 @@ theme: /Weather
             go!: /Weather/Begin
         #если отказ
         state: Deny
-            q: * (ничего/никакую) *
-            q: ( (* не хочу *)/(* не надо *) )
-            q: ( (* нигде *)/(* ни где *) )
+            intent: /Отказ
             q: * отказ*
             a: Как скажете.
             go!: /Exit
@@ -96,10 +94,7 @@ theme: /Weather
             go!: /Weather/Step3
         #отказ - идем на выход
         state: Deny
-            q: * (ничего/никакую) *
-            q: (* (не хочу)/(не надо) *)
-            q: (* нет/не надо *)
-            q: (* нет/отказ* *)
+            intent: /Отказ
             a: Как скажете.
             go!: /Exit
         #любой другой ответ - подсказываем что надо ответить и идем на начало шага
@@ -240,8 +235,7 @@ theme: /Weather
                 go!: /Trip/Begin
             #если нет - идем на шаг6 погоды    
             state: Deny
-                q: * $comNo *
-                q: * (не надо/не хочу) *
+                intent: /Отказ
                 go!: /Weather/Step6        
                     
     state: Step6                
@@ -262,9 +256,7 @@ theme: /Weather
             go!: /Weather/Begin     
         #не нужен прогноз - идем на выход
         state: Deny
-            q: * $comNo *
-            q: * (не хочу/не надо) *
-            q: * не нуж* *
+            intent: /Отказ
             a: Как скажете!
             go!: /Exit
             

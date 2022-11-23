@@ -29,6 +29,40 @@
       "text" : "Покеда"
     }, {
       "text" : "До встреч"
+    }, {
+      "text" : "до завтра"
+    }, {
+      "text" : "досвидания"
+    }, {
+      "text" : "гудбай"
+    } ],
+    "classificationRules" : {
+      "refs" : [ ]
+    },
+    "patterns" : [ ],
+    "priority" : 0
+  }, {
+    "path" : "/Тур",
+    "enabled" : true,
+    "shared" : false,
+    "phrases" : [ {
+      "text" : "оформить заявку на тур"
+    }, {
+      "text" : "подать заявку"
+    }, {
+      "text" : "путешествие"
+    }, {
+      "text" : "турфирма"
+    }, {
+      "text" : "агенство"
+    }, {
+      "text" : "турагенство"
+    }, {
+      "text" : "заявочка"
+    }, {
+      "text" : "заявка"
+    }, {
+      "text" : "путевка"
     } ],
     "classificationRules" : {
       "refs" : [ ]
@@ -55,11 +89,15 @@
       "text" : "какая погода в"
     }, {
       "text" : "что с погодой в"
+    }, {
+      "text" : "о прогнозе"
+    }, {
+      "text" : "о погоде"
     } ],
     "classificationRules" : {
       "refs" : [ ]
     },
-    "patterns" : [ ],
+    "patterns" : [ "~погода", "~прогноз" ],
     "slots" : [ {
       "name" : "Geo",
       "entity" : "mystem.geo",
@@ -71,6 +109,90 @@
       "required" : false,
       "prompts" : [ ]
     } ],
+    "priority" : 0
+  }, {
+    "path" : "/Отказ",
+    "enabled" : true,
+    "shared" : false,
+    "phrases" : [ {
+      "text" : "ничего"
+    }, {
+      "text" : "не хочу"
+    }, {
+      "text" : "не надо"
+    }, {
+      "text" : "отказ"
+    }, {
+      "text" : "отказываюсь"
+    }, {
+      "text" : "не стоит"
+    }, {
+      "text" : "нет смысла"
+    }, {
+      "text" : "это не то что мне надо"
+    }, {
+      "text" : "не буду"
+    }, {
+      "text" : "отвяжись"
+    }, {
+      "text" : "уйди"
+    }, {
+      "text" : "ни как"
+    }, {
+      "text" : "ни какую"
+    }, {
+      "text" : "никак"
+    }, {
+      "text" : "никакой"
+    }, {
+      "text" : "ничего"
+    }, {
+      "text" : "ни чего"
+    }, {
+      "text" : "не чего"
+    }, {
+      "text" : "не нужен"
+    }, {
+      "text" : "ненужный"
+    }, {
+      "text" : "не нужна"
+    } ],
+    "classificationRules" : {
+      "refs" : [ ]
+    },
+    "patterns" : [ ],
+    "priority" : 0
+  }, {
+    "path" : "/Нет",
+    "enabled" : true,
+    "shared" : false,
+    "phrases" : [ {
+      "text" : "Нет"
+    }, {
+      "text" : "Не верно"
+    }, {
+      "text" : "другой"
+    }, {
+      "text" : "неа"
+    }, {
+      "text" : "ytn"
+    }, {
+      "text" : "ноу"
+    }, {
+      "text" : "иначе"
+    }, {
+      "text" : "не верно"
+    }, {
+      "text" : "неправильно"
+    }, {
+      "text" : "не правильно"
+    }, {
+      "text" : "неверно"
+    } ],
+    "classificationRules" : {
+      "refs" : [ ]
+    },
+    "patterns" : [ ],
     "priority" : 0
   } ],
   "entities" : [ ],
