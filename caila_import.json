@@ -70,6 +70,40 @@
     "patterns" : [ ],
     "priority" : 0
   }, {
+    "path" : "/Приветствие",
+    "enabled" : true,
+    "shared" : false,
+    "phrases" : [ {
+      "text" : "Привет"
+    }, {
+      "text" : "здравствуйте"
+    }, {
+      "text" : "хай"
+    }, {
+      "text" : "hi"
+    }, {
+      "text" : "здорово"
+    }, {
+      "text" : "приветик"
+    }, {
+      "text" : "здравствуй"
+    }, {
+      "text" : "мир тебе"
+    }, {
+      "text" : "добрый день"
+    }, {
+      "text" : "добрый вечер"
+    }, {
+      "text" : "доброе утро"
+    }, {
+      "text" : "драсте"
+    } ],
+    "classificationRules" : {
+      "refs" : [ ]
+    },
+    "patterns" : [ ],
+    "priority" : 0
+  }, {
     "path" : "/Погода",
     "enabled" : true,
     "shared" : false,
@@ -188,6 +222,38 @@
       "text" : "не правильно"
     }, {
       "text" : "неверно"
+    } ],
+    "classificationRules" : {
+      "refs" : [ ]
+    },
+    "patterns" : [ ],
+    "priority" : 0
+  }, {
+    "path" : "/Да",
+    "enabled" : true,
+    "shared" : false,
+    "phrases" : [ {
+      "text" : "Да"
+    }, {
+      "text" : "Хорошо"
+    }, {
+      "text" : "Давай"
+    }, {
+      "text" : "Согласен"
+    }, {
+      "text" : "Конечно"
+    }, {
+      "text" : "ага"
+    }, {
+      "text" : "так точно"
+    }, {
+      "text" : "lf"
+    }, {
+      "text" : "дада"
+    }, {
+      "text" : "ok"
+    }, {
+      "text" : "верно"
     } ],
     "classificationRules" : {
       "refs" : [ ]

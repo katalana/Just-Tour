@@ -215,8 +215,7 @@ theme: /Weather
             go!: /Weather/Step6
         #если да - предлагаем оформить заявку (или продолжить её оформление)
         state: YesSure
-            q: * $comYes *
-            q: (да/верно)
+            intent: /Да
             q: планирую
             if: $session.tripStep
                 a: Продолжим оформление заявки на тур?
@@ -228,8 +227,8 @@ theme: /Weather
                     
             #если да - идем в раздел Заявка
             state: Yes
-                q: * $comYes *
-                q: ( (* давай*)/(* оформ*)/(* заявк*) )
+                intent: /Да
+                q: ( (* оформ*)/(* заявк*) )
                 q: ( (* продолж*)/(* стар*) )
                 go!: /Trip/Begin
             #если нет - идем на шаг6 погоды    
@@ -247,8 +246,7 @@ theme: /Weather
         state: ChangePlaceDate
             q: * (другое/другом место/месте) *
             q: [~другой] (~место) [~дата]
-            q: * $comYes *
-            q: (да/давай)
+            intent: /Да
             script: 
                 delete $session.place, 
                 delete $session.coordinates, 
