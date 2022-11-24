@@ -6,7 +6,7 @@ require: slotfilling/slotFilling.sc
 require: dateTime/moment.min.js
     module = sys.zb-common 
 
-# библиотека локальных функций
+# библиотека пользовательских функций
 require: func.js
 
 # файл сценария с заполнением заявки на тур

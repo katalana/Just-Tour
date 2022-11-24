@@ -1,7 +1,7 @@
 {
   "project" : {
-    "id" : "just_tour_git-1000048259-Vtf",
-    "name" : "just_tour_git-1000048259-Vtf",
+    "id" : "just_tour_v2-1000048259-kHP",
+    "name" : "just_tour_v2-1000048259-kHP",
     "folder" : "/jaicp"
   },
   "settings" : {
@@ -35,7 +35,13 @@
       "text" : "пока"
     } ],
     "classificationRules" : {
-      "refs" : [ ]
+      "refs" : [ {
+        "entityName" : "classRule_1246",
+        "predicate" : "CONTAINS_NOT"
+      }, {
+        "entityName" : "classRule_7228",
+        "predicate" : "CONTAINS_NOT"
+      } ]
     },
     "patterns" : [ ],
     "priority" : 0
@@ -67,6 +73,8 @@
       "text" : "оформляй"
     }, {
       "text" : "оформим"
+    }, {
+      "text" : "прими"
     } ],
     "classificationRules" : {
       "refs" : [ ]
@@ -131,6 +139,12 @@
       "text" : "пока не выбрал"
     }, {
       "text" : "не помню"
+    }, {
+      "text" : "еще не знаю"
+    }, {
+      "text" : "еще не решил"
+    }, {
+      "text" : "нет еще"
     } ],
     "classificationRules" : {
       "refs" : [ ]
@@ -157,7 +171,10 @@
       "text" : "а еще"
     } ],
     "classificationRules" : {
-      "refs" : [ ]
+      "refs" : [ {
+        "entityName" : "classRule_4573",
+        "predicate" : "CONTAINS_NOT"
+      } ]
     },
     "patterns" : [ ],
     "priority" : 0
@@ -194,12 +211,14 @@
       "name" : "Geo",
       "entity" : "mystem.geo",
       "required" : false,
-      "prompts" : [ ]
+      "prompts" : [ ],
+      "array" : false
     }, {
       "name" : "Date",
       "entity" : "duckling.date",
       "required" : false,
-      "prompts" : [ ]
+      "prompts" : [ ],
+      "array" : false
     } ],
     "priority" : 0
   }, {
@@ -349,6 +368,63 @@
     "records" : [ {
       "type" : "pattern",
       "rule" : [ "пока" ],
+      "value" : ""
+    } ]
+  }, {
+    "entity" : {
+      "name" : "classRule_1246",
+      "enabled" : true,
+      "shared" : false,
+      "type" : "annotation",
+      "priority" : 1,
+      "noSpelling" : false,
+      "noMorph" : false,
+      "phoneticSearch" : false,
+      "fuzzySearch" : false,
+      "client" : false,
+      "hidden" : true
+    },
+    "records" : [ {
+      "type" : "pattern",
+      "rule" : [ "еще не" ],
+      "value" : ""
+    } ]
+  }, {
+    "entity" : {
+      "name" : "classRule_7228",
+      "enabled" : true,
+      "shared" : false,
+      "type" : "annotation",
+      "priority" : 1,
+      "noSpelling" : false,
+      "noMorph" : false,
+      "phoneticSearch" : false,
+      "fuzzySearch" : false,
+      "client" : false,
+      "hidden" : true
+    },
+    "records" : [ {
+      "type" : "pattern",
+      "rule" : [ "пока не" ],
+      "value" : ""
+    } ]
+  }, {
+    "entity" : {
+      "name" : "classRule_4573",
+      "enabled" : true,
+      "shared" : false,
+      "type" : "annotation",
+      "priority" : 1,
+      "noSpelling" : false,
+      "noMorph" : false,
+      "phoneticSearch" : false,
+      "fuzzySearch" : false,
+      "client" : false,
+      "hidden" : true
+    },
+    "records" : [ {
+      "type" : "pattern",
+      "rule" : [ "еще не" ],
       "value" : ""
     } ]
   } ],

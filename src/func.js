@@ -94,7 +94,7 @@ function email () {
         smtpHost: "smtp.mail.ru",
         smtpPort: "465",
         user: "katalana@mail.ru",
-        password: "rRk8AEUQ6ZMAJaZ8BGEu"
+        password: "****************"
     });
     return (answer);
 }
