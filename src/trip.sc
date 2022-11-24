@@ -144,7 +144,7 @@ theme: /Trip
             go!: /Trip/Step4
         #введено что-то иное - сохраняем это в другой переменной
         state: NoDate
-            q: *
+            event: noMatch
             script: $session.noDate = $request.query;
             go!: /Trip/Step4
     
