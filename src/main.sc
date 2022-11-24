@@ -1,4 +1,17 @@
+#подгрузили файл с именами модулей, библиотек и справочников
 require: requirements.sc
+
+init:
+#задаем правило обработки интентов и паттернов
+    bind("selectNLUResult", function($context) {
+        //если есть совпадение по интенту - используем интент
+        if ($context.nluResults.intents.length > 0) {
+            $context.nluResults.selected = $context.nluResults.intents[0];
+            return;
+        }
+        //если нет совпадений по интенту - используем паттерн
+        if ($context.nluResults.patterns.length > 0) $context.nluResults.selected = $context.nluResults.patterns[0]
+    });
 
 #========================================= СТАРТ И ГЛОБАЛЬНЫЕ ИНТЕНТЫ ==================================================
 theme: /  
@@ -113,7 +126,10 @@ theme: /Menu
             intent: /Нет
             a: Как скажете.
             go!: /Exit
-            
+        #интент Прогноз погоды    
+        state: Weather
+            intent: /Погода
+            go!: /Weather/Begin
         #интент Оформить заявку
         state: Tour
             intent: /Тур
@@ -143,7 +159,7 @@ theme: /Menu
                 
     #интент город/страна
     state: Location 
-        q: * $City * 
+        # q: * $City * 
         q: * $Country * 
         #запоминаем город или страну и их координаты
         script: getLocation ($parseTree)
