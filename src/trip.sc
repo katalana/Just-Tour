@@ -201,9 +201,12 @@ theme: /Trip
             "$1500-$3000"
             "свыше $3000"
             "Еще не знаю"
+        state: Weather
+            intent: /Погода
+            go!: /Weather/Begin
         #подойдет любой ответ - записали его
         state: Answer
-            q: *
+            event: noMatch
             script: $session.budget = $request.query;
             go!: /Trip/Step7
 

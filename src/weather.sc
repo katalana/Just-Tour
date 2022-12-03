@@ -248,6 +248,7 @@ theme: /Weather
                 delete $session.place, 
                 delete $session.coordinates, 
                 delete $session.date
+            
             go!: /Weather/Begin     
         #не нужен прогноз - идем на выход
         state: Deny
